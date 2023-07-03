@@ -1,0 +1,4 @@
+.idea
+*.log
+dataDB/
+cmd/bin/

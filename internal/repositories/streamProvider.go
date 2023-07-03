@@ -1,0 +1,140 @@
+package repositories
+
+import (
+	"context"
+	"fmt"
+	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"mqttToInfluxDB/internal/entities"
+	"mqttToInfluxDB/internal/interfaces"
+	"os"
+	"time"
+)
+
+var (
+	topics = []string{}
+
+	topicsMap = map[string]byte{
+		"sknSensors/+/Ambient/humidity":    byte(1),
+		"sknSensors/+/Ambient/temperature": byte(1),
+		"sknSensors/+/Occupancy/motion":    byte(1),
+		"sknSensors/+/Occupancy/occupancy": byte(1),
+		"sknSensors/+/Presence/motion":     byte(1),
+		"sknSensors/+/SknRanger/Position":  1,
+		"sknSensors/+/SknRanger/State":     1,
+		"sknSensors/+/SknRanger/Details":   1,
+	}
+)
+
+type repo struct {
+	client     MQTT.Client
+	subscribed bool
+	stream     chan interfaces.StreamMessage
+}
+
+var (
+	_            interfaces.StreamProvider = (*repo)(nil)
+	mqttProvider *repo
+)
+
+func GetClient() MQTT.Client {
+	return mqttProvider.client
+}
+
+func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage) (interfaces.StreamProvider, error) {
+	for k := range topicsMap {
+		topics = append(topics, k)
+	}
+
+	opts := MQTT.NewClientOptions()
+	opts.AddBroker(os.Getenv("MQTT_URI"))
+	opts.SetClientID("mqttToInfluxDB2")
+	opts.SetUsername(os.Getenv("MQTT_USER"))
+	opts.SetPassword(os.Getenv("MQTT_PASS"))
+	opts.SetCleanSession(true)
+	opts.SetDefaultPublishHandler(func(client MQTT.Client, msg MQTT.Message) {
+		sm, _ := entities.NewStreamMessage(msg.Topic(), string(msg.Payload()))
+		stream <- sm
+	})
+	opts.OnConnect = func(client MQTT.Client) {
+		fmt.Println("====> StreamProvider() Connected")
+	}
+	opts.OnReconnecting = func(client MQTT.Client, options *MQTT.ClientOptions) {
+		fmt.Println("====> StreamProvider() Reconnecting")
+	}
+	opts.OnConnectionLost = func(client MQTT.Client, err error) {
+		fmt.Println("====> StreamProvider() Connection lost: ", err.Error())
+	}
+
+	client := MQTT.NewClient(opts)
+
+	mqttProvider = &repo{
+		client:     client,
+		subscribed: false,
+		stream:     stream,
+	}
+
+	go func(ctx context.Context, provider interfaces.StreamProvider) {
+		for true {
+			select {
+			case <-ctx.Done():
+				fmt.Println("provider cancelled\n", ctx.Err())
+				provider.DisableStream()
+				provider.Disconnect()
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+	}(ctx, mqttProvider)
+
+	return mqttProvider, nil
+}
+
+func (r *repo) IsOnline() bool {
+	return r.client.IsConnected()
+}
+
+func (r *repo) Connect() error {
+	fmt.Println("====> StreamProvider() Connecting")
+	if token := r.client.Connect(); token.Wait() && token.Error() != nil {
+		return token.Error()
+	}
+
+	return nil
+}
+
+func (r *repo) Disconnect() {
+	fmt.Println("====> StreamProvider() Disconnecting")
+	r.client.Disconnect(250)
+}
+
+func (r *repo) EnableStream() error {
+	for !r.IsOnline() {
+		time.Sleep(500 * time.Millisecond)
+	}
+	fmt.Println("====> StreamProvider() Subscribing")
+	token := r.client.SubscribeMultiple(topicsMap, func(client MQTT.Client, msg MQTT.Message) {
+		sm, _ := entities.NewStreamMessage(msg.Topic(), string(msg.Payload()))
+		r.stream <- sm
+	})
+	if token.Wait() && token.Error() != nil {
+		fmt.Println(token.Error())
+		return token.Error()
+	}
+
+	r.subscribed = true
+	return nil
+}
+
+func (r *repo) DisableStream() error {
+	if !r.subscribed {
+		return nil
+	}
+	fmt.Println("====> StreamProvider() Unsubscribing")
+	token := r.client.Unsubscribe(topics...)
+	if token.Wait() && token.Error() != nil {
+		fmt.Println(token.Error())
+		return token.Error()
+	}
+	r.subscribed = false
+	return nil
+}
