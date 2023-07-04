@@ -41,7 +41,7 @@ func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage
 	go func(consume interfaces.StreamConsumer, devStore interfaces.DeviceRepository) {
 		fmt.Println("====> StreamConsumer() Listening")
 		for msg := range consume.GetStream() {
-			//fmt.Printf("[%s] DEVICE: %s\tPROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Property(), msg.Value())
+			fmt.Printf("[%s] DEVICE: %s\tPROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Property(), msg.Value())
 			devStore.ApplyMessage(msg)
 			_ = consume.Write(msg)
 		}
@@ -101,5 +101,6 @@ func (c *consumer) Write(msg interfaces.StreamMessage) error {
 }
 func (c *consumer) Disconnect() {
 	fmt.Println("====> StreamConsumer() disconnected")
+	_ = c.writeAPI.Flush(c.ctx)
 	c.client.Close()
 }
