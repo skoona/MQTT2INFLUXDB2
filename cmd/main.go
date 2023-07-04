@@ -3,8 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"mqttToInfluxDB/internal/interfaces"
-	"mqttToInfluxDB/internal/repositories"
+	"mqttToInfluxDB/internal/services"
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,33 +19,20 @@ import (
  * - sknSensors/+/SknRanger/Position int
  * - sknSensors/+/SknRanger/State UP,DOWN
  * - sknSensors/+/SknRanger/Details JSON
- */
+
+	Device / Node / Property / Value
+	map[string]Nodes
+			   map[string]Properties
+
+
+*/
 
 func main() {
-	stream := make(chan interfaces.StreamMessage, 64)
+	ctxService, cancelService := context.WithCancel(context.Background())
 
-	ctxProvider, cancelProvider := context.WithCancel(context.Background())
-	ctxConsumer, cancelConsumer := context.WithCancel(context.Background())
+	service := services.NewStreamService(ctxService)
 
-	provider, err := repositories.NewStreamProvider(ctxProvider, stream)
-	if err != nil {
-		fmt.Println("NewStreamProvider() error", err.Error())
-		panic(1)
-	}
-
-	err = provider.Connect()
-	if err != nil {
-		fmt.Println("Connect() error", err.Error())
-		panic(1)
-	}
-
-	_ = repositories.NewStreamConsumer(ctxConsumer, stream)
-
-	err = provider.EnableStream()
-	if err != nil {
-		fmt.Println("EnableStream() error", err.Error())
-		panic(1)
-	}
+	service.Enable()
 
 	/*
 	 * Prepare for clean exit
@@ -56,13 +42,10 @@ func main() {
 		systemSignalChannel := make(chan os.Signal, 1)
 		signal.Notify(systemSignalChannel, syscall.SIGINT, syscall.SIGTERM)
 		sig := <-systemSignalChannel // wait on ctrl-c
-
-		cancelProvider() // provider
-		close(stream)
-		cancelConsumer() // consumer
+		cancelService()              // provider
 
 		shutdown <- fmt.Errorf("%s", sig)
 	}(errs)
-	fmt.Println("event ", "shutdown requested ", "cause:", <-errs)
+	fmt.Println("event ", "shutdown requested ", "cause:", <-errs) // errs holds it up
 
 }

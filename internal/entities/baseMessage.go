@@ -3,7 +3,6 @@ package entities
 import (
 	"encoding/json"
 	"fmt"
-	"mqttToInfluxDB/internal/interfaces"
 	"strings"
 	"time"
 )
@@ -26,13 +25,11 @@ type baseMessage struct {
 	movement  string    `json:"movement"`
 }
 
-var _ interfaces.StreamMessage = (*baseMessage)(nil)
-
-func NewStreamMessage(topic, value string) (interfaces.StreamMessage, error) {
+func NewStreamMessage(topic, value string) (*baseMessage, error) {
 	base := &baseMessage{}
 	parts := strings.Split(topic, "/")
 
-	if strings.Contains(parts[3], "Details") {
+	if strings.Contains(parts[3], GarageProperty) {
 		err := json.Unmarshal([]byte(value), base)
 		if err != nil {
 			fmt.Println("JSON Parse Error: ", err.Error())
@@ -50,6 +47,9 @@ func NewStreamMessage(topic, value string) (interfaces.StreamMessage, error) {
 	return base, nil
 }
 
+func (s *baseMessage) IsGarageDoor() bool {
+	return s.property == GarageProperty
+}
 func (s *baseMessage) Topic() string {
 	return s.topic
 }
@@ -70,9 +70,6 @@ func (s *baseMessage) Value() string {
 }
 func (s *baseMessage) Timestamp() string {
 	return s.timestamp.Format(time.RFC3339)
-}
-func (s *baseMessage) IsGarageDoor() bool {
-	return s.property == "Details"
 }
 func (s *baseMessage) Ambient() float32 {
 	return s.ambient

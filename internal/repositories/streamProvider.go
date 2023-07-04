@@ -19,9 +19,9 @@ var (
 		"sknSensors/+/Occupancy/motion":    byte(1),
 		"sknSensors/+/Occupancy/occupancy": byte(1),
 		"sknSensors/+/Presence/motion":     byte(1),
-		"sknSensors/+/SknRanger/Position":  1,
-		"sknSensors/+/SknRanger/State":     1,
-		"sknSensors/+/SknRanger/Details":   1,
+		"sknSensors/+/SknRanger/Position":  byte(1),
+		"sknSensors/+/SknRanger/State":     byte(1),
+		"sknSensors/+/SknRanger/Details":   byte(1),
 	}
 )
 
@@ -36,11 +36,7 @@ var (
 	mqttProvider *repo
 )
 
-func GetClient() MQTT.Client {
-	return mqttProvider.client
-}
-
-func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage) (interfaces.StreamProvider, error) {
+func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage) interfaces.StreamProvider {
 	for k := range topicsMap {
 		topics = append(topics, k)
 	}
@@ -74,9 +70,8 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 	}
 
 	go func(ctx context.Context, provider interfaces.StreamProvider) {
-		for true {
-			select {
-			case <-ctx.Done():
+		for {
+			if <-ctx.Done(); true {
 				fmt.Println("provider cancelled\n", ctx.Err())
 				provider.DisableStream()
 				provider.Disconnect()
@@ -86,13 +81,14 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 		}
 	}(ctx, mqttProvider)
 
-	return mqttProvider, nil
+	return mqttProvider
 }
-
+func GetClient() MQTT.Client {
+	return mqttProvider.client
+}
 func (r *repo) IsOnline() bool {
 	return r.client.IsConnected()
 }
-
 func (r *repo) Connect() error {
 	fmt.Println("====> StreamProvider() Connecting")
 	if token := r.client.Connect(); token.Wait() && token.Error() != nil {
@@ -101,12 +97,10 @@ func (r *repo) Connect() error {
 
 	return nil
 }
-
 func (r *repo) Disconnect() {
 	fmt.Println("====> StreamProvider() Disconnecting")
 	r.client.Disconnect(250)
 }
-
 func (r *repo) EnableStream() error {
 	for !r.IsOnline() {
 		time.Sleep(500 * time.Millisecond)
@@ -124,7 +118,6 @@ func (r *repo) EnableStream() error {
 	r.subscribed = true
 	return nil
 }
-
 func (r *repo) DisableStream() error {
 	if !r.subscribed {
 		return nil

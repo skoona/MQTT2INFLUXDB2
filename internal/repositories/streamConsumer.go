@@ -20,7 +20,7 @@ type consumer struct {
 
 var _ interfaces.StreamConsumer = (*consumer)(nil)
 
-func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage) interfaces.StreamConsumer {
+func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage, devStore interfaces.DeviceRepository) interfaces.StreamConsumer {
 
 	bucket := os.Getenv("INFLUXDB_BUCKET")
 	org := os.Getenv("INFLUXDB_ORG")
@@ -38,18 +38,18 @@ func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage
 
 	repo.writeAPI = repo.client.WriteAPIBlocking(org, bucket)
 
-	go func(consume interfaces.StreamConsumer) {
+	go func(consume interfaces.StreamConsumer, devStore interfaces.DeviceRepository) {
 		fmt.Println("====> StreamConsumer() Listening")
 		for msg := range consume.GetStream() {
-			//fmt.Printf("[%s] DEVICE: %s NODE: %s \tRECEIVED PROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Node(), msg.Property(), msg.Value())
+			//fmt.Printf("[%s] DEVICE: %s\tPROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Property(), msg.Value())
+			devStore.ApplyMessage(msg)
 			_ = consume.Write(msg)
 		}
-	}(repo)
+	}(repo, devStore)
 
 	go func(ctx context.Context, consume interfaces.StreamConsumer) {
-		for true {
-			select {
-			case <-ctx.Done():
+		for {
+			if <-ctx.Done(); true {
 				fmt.Println("consumer cancelled\n", ctx.Err())
 				consume.Disconnect()
 				break
@@ -99,7 +99,6 @@ func (c *consumer) Write(msg interfaces.StreamMessage) error {
 	}
 	return nil
 }
-
 func (c *consumer) Disconnect() {
 	fmt.Println("====> StreamConsumer() disconnected")
 	c.client.Close()
