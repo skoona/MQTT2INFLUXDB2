@@ -23,6 +23,9 @@ var (
 		"sknSensors/+/SknRanger/Position":  byte(1),
 		"sknSensors/+/SknRanger/State":     byte(1),
 		"sknSensors/+/SknRanger/Details":   byte(1),
+		"sknSensors/+/LEDBanner/message":   byte(1),
+		"sknSensors/+/$fw/name":            byte(1),
+		//"sknSensors/+/wiredMonitor/+":      byte(1),
 	}
 )
 

@@ -69,7 +69,9 @@ func (v *viewProvider) NewCard(device *entities.Device) *fyne.Container {
 	for name, prop := range device.Properties {
 		if name != commons.GarageProperty {
 			props.Add(widget.NewLabel(prop.Name))
-			props.Add(widget.NewLabelWithData(prop.Bond))
+			n := widget.NewLabelWithData(prop.Bond)
+			n.Wrapping = fyne.TextWrapWord
+			props.Add(n)
 		}
 	}
 	card := widget.NewCard(device.Name, device.UpdatedAt(), props)
@@ -90,7 +92,7 @@ func (v *viewProvider) NewCard(device *entities.Device) *fyne.Container {
 		card.SetImage(commons.SknSelectThemedImage("sensorOn_o"))
 	}
 	content := container.NewMax(border, card)
-	content.Resize(fyne.NewSize(240, 288))
+	content.Resize(fyne.NewSize(240, 240))
 	v.cards[device.Name] = content
 
 	return content
@@ -128,6 +130,8 @@ func (v *viewProvider) UpdateUI() bool {
 					if !skip {
 						n := widget.NewLabel(prop.Name)
 						d := widget.NewLabelWithData(prop.Bond)
+						d.Wrapping = fyne.TextWrapWord
+
 						card.Objects[1].(*widget.Card).Content.(*fyne.Container).Add(n)
 						card.Objects[1].(*widget.Card).Content.(*fyne.Container).Add(d)
 					}
@@ -142,7 +146,7 @@ func (v *viewProvider) UpdateUI() bool {
 }
 func (v *viewProvider) MainPage() *fyne.Container {
 	v.SetStatusLineText("page updated")
-	grid := container.NewGridWithColumns(4)
+	grid := container.NewGridWithColumns(6)
 	for _, card := range v.cards {
 		grid.Add(card)
 	}
