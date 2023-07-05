@@ -2,3 +2,4 @@
 *.log
 dataDB/
 cmd/bin/
+/.envrc
