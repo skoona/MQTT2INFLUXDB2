@@ -1,5 +1,5 @@
 .idea
 *.log
 dataDB/
-cmd/bin/
+bin/
 /.envrc

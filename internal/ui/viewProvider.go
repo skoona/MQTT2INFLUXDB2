@@ -150,9 +150,20 @@ func (v *viewProvider) MainPage() *fyne.Container {
 	for _, card := range v.cards {
 		grid.Add(card)
 	}
+
+	m := widget.NewIcon(theme.FolderOpenIcon())
+	i := widget.NewIcon(theme.StorageIcon())
+	if v.service.GetStreamProvider() == nil {
+		m.Hide()
+	}
+	if v.service.GetStreamConsumer() == nil {
+		i.Hide()
+	}
 	v.mainPage = container.NewBorder(
 		nil,
 		container.NewHBox(v.refresh,
+			m,
+			i,
 			widget.NewLabel(" Devices:"), v.devCounter,
 			widget.NewLabel(" Msgs processed:"), v.msgCounter,
 			v.status,

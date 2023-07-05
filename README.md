@@ -6,6 +6,7 @@ Golang program to read cerain MQTT messages for devices (sensors) using the Homi
 	fyne data binding process require an address of an alternate object to be used for successful dynamic updates, and when source changes the object must be set.
 	Environment variables override the default and/or save config in all cases.
 	InfluxDB2 channel can be turned off via settings or environment var
+    Two icons on status bar relate to (folder)message provider and (storage) message consumer being enabled
 
 ## MIT License
 	
