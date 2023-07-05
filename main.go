@@ -52,7 +52,7 @@ func main() {
 	ctxService, cancelService := context.WithCancel(ctx)
 
 	onLine := true
-	service := services.NewStreamService(ctxService)
+	service := services.NewStreamService(ctxService, false)
 	err := service.Enable()
 	if err != nil {
 		// configuration failure

@@ -15,21 +15,18 @@ type consumer struct {
 	client   influxdb2.Client
 	writeAPI api.WriteAPIBlocking
 	ctx      context.Context
-	stream   chan interfaces.StreamMessage
 }
 
 var _ interfaces.StreamConsumer = (*consumer)(nil)
 
-func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage, devStore interfaces.DeviceRepository) interfaces.StreamConsumer {
-
-	debug := ctx.Value(commons.DebugModeKey).(bool)
+func NewStreamConsumer(ctx context.Context) interfaces.StreamConsumer {
 
 	bucket := ctx.Value(commons.InfluxBucketKey).(string)
 	org := ctx.Value(commons.InfluxOrgKey).(string)
 	token := ctx.Value(commons.InfluxTokenKey).(string)
 	url := ctx.Value(commons.InfluxHostUriKey).(string)
 
-	repo := &consumer{ctx: ctx, stream: stream}
+	repo := &consumer{ctx: ctx}
 
 	repo.client = influxdb2.NewClientWithOptions(url, token,
 		influxdb2.DefaultOptions().
@@ -39,17 +36,6 @@ func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage
 			}))
 
 	repo.writeAPI = repo.client.WriteAPIBlocking(org, bucket)
-
-	go func(consume interfaces.StreamConsumer, devStore interfaces.DeviceRepository) {
-		fmt.Println("====> StreamConsumer() Listening")
-		for msg := range consume.GetStream() {
-			if debug {
-				fmt.Printf("[%s] DEVICE: %s\tPROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Property(), msg.Value())
-			}
-			devStore.ApplyMessage(msg)
-			_ = consume.Write(msg)
-		}
-	}(repo, devStore)
 
 	go func(ctx context.Context, consume interfaces.StreamConsumer) {
 		for {
@@ -64,9 +50,7 @@ func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage
 
 	return repo
 }
-func (c *consumer) GetStream() chan interfaces.StreamMessage {
-	return c.stream
-}
+
 func (c *consumer) Write(msg interfaces.StreamMessage) error {
 	if msg.IsGarageDoor() {
 		dataPoint := influxdb2.NewPoint("home",
