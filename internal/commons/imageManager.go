@@ -28,12 +28,6 @@ func SknImageByName(alias string, themed bool) *canvas.Image {
 		selected = resourceGarageOpenSvg
 	case "garageClosed":
 		selected = resourceGarageClosedSvg
-	case "sensorOff_r":
-		selected = resourceSensorsOffMbr24pxSvg
-	case "sensorOn_o":
-		selected = resourceSensorsOnMbo24pxSvg
-	case "sensorOn_r":
-		selected = resourceSensorsOnMbr24pxSvg
 	default:
 		selected = resourceSensorsOnMbo24pxSvg
 	}
