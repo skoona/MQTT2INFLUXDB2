@@ -46,6 +46,7 @@ const (
 	MqttHostUriKey   = 14
 	MqttUserKey      = 15
 	MqttPassKey      = 16
+	FyneWindowKey    = 17
 )
 
 var (
@@ -63,6 +64,10 @@ var (
 			return i.(*map[string]string)
 		}
 */
+func GetConfigurationMap() map[string]string {
+	return appSettings
+}
+
 func IsDebugMode() bool {
 	return (appSettings[DebugMode] == "true")
 }
@@ -102,6 +107,63 @@ func GetMqttPass() string {
 	return appSettings[MqttPass]
 }
 
+func SetInfluxHostUri(newValue string) bool {
+	oldValue := appSettings[InfluxHostUri]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[InfluxHostUri] = newValue
+		return true
+	}
+	return false
+}
+func SetInfluxBucket(newValue string) bool {
+	oldValue := appSettings[InfluxBucket]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[InfluxBucket] = newValue
+		return true
+	}
+	return false
+}
+func SetInfluxOrg(newValue string) bool {
+	oldValue := appSettings[InfluxOrg]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[InfluxOrg] = newValue
+		return true
+	}
+	return false
+}
+func SetInfluxToken(newValue string) bool {
+	oldValue := appSettings[InfluxToken]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[InfluxToken] = newValue
+		return true
+	}
+	return false
+}
+func SetMqttHostUri(newValue string) bool {
+	oldValue := appSettings[MqttHostUri]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[MqttHostUri] = newValue
+		return true
+	}
+	return false
+}
+func SetMqttUser(newValue string) bool {
+	oldValue := appSettings[MqttUser]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[MqttUser] = newValue
+		return true
+	}
+	return false
+}
+func SetMqttPass(newValue string) bool {
+	oldValue := appSettings[MqttPass]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[MqttPass] = newValue
+		return true
+	}
+	return false
+}
+
 // AppSettings collects env params and same preferences with env value priority
 func AppSettings(ctx context.Context, a fyne.App) map[string]string {
 	fyne_instance = a
@@ -110,27 +172,35 @@ func AppSettings(ctx context.Context, a fyne.App) map[string]string {
 		appID = "net.skoona.mq2influx"
 	}
 
+	/*
+	 * initialize with default values */
 	cfg := map[string]string{
 		ApplicationName:  "mqttToInfluxDB",
 		ApplicationId:    appID,
 		ApplicationTitle: "Homie v3/MQTT to InfluxDB2",
 		CompanyName:      "Skoona Development",
-		InfluxHostUri:    "http://10.100.1.17:8086",
-		InfluxBucket:     "SknSensors",
+		InfluxHostUri:    "http://127.0.0.1:8086",
+		InfluxBucket:     "homie",
 		InfluxOrg:        "skoona.net",
-		InfluxToken:      "1ac1a18911f80510ee8c1de0d5a0d132dbec9e31cc1b9dc422f55d8c612d5498",
-		MqttHostUri:      "tcp://10.100.1.16:1883",
-		MqttUser:         "openhabian",
-		MqttPass:         "Apache.Tomcat.8",
+		InfluxToken:      "somelonghexvale",
+		MqttHostUri:      "tcp://127.0.0.1:1883",
+		MqttUser:         "developer",
+		MqttPass:         "developer99",
 		TestMode:         "true",
 		DebugMode:        "true",
 	}
 	appSettings = cfg
 
-	//for key, value := range cfg {
-	//	cfg[key] = fyne_instance.Preferences().StringWithFallback(key, value)
-	//}
+	/*
+	 * load saved values */
+	if fyne_instance != nil {
+		for key, value := range cfg {
+			cfg[key] = fyne_instance.Preferences().StringWithFallback(key, value)
+		}
+	}
 
+	/*
+	 * override with environment values */
 	value := os.Getenv("ENABLE_TEST_MODE")
 	if value != "" {
 		cfg[TestMode] = value
@@ -178,8 +248,12 @@ func AppSettings(ctx context.Context, a fyne.App) map[string]string {
 		cfg[MqttPass] = value
 	}
 
-	for key, value := range cfg {
-		fyne_instance.Preferences().SetString(key, value)
+	/*
+	 * save resolved values */
+	if fyne_instance != nil {
+		for key, value := range cfg {
+			fyne_instance.Preferences().SetString(key, value)
+		}
 	}
 
 	return cfg

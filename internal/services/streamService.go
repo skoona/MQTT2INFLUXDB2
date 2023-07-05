@@ -32,18 +32,18 @@ func NewStreamService(ctx context.Context) interfaces.StreamService {
 	}
 }
 
-func (s *streamService) Enable() {
+func (s *streamService) Enable() error {
 	err := s.provider.Connect()
 	if err != nil {
 		fmt.Println("Connect() error", err.Error())
-		panic(1)
+		return err
 	}
 	err = s.provider.EnableStream()
 	if err != nil {
 		fmt.Println("EnableStream() error", err.Error())
-		panic(1)
+		return err
 	}
-
+	return nil
 }
 func (s *streamService) Disable() {
 	s.provider.DisableStream()

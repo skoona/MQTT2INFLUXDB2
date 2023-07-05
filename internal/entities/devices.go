@@ -1,6 +1,9 @@
 package entities
 
-import "mqttToInfluxDB/internal/commons"
+import (
+	"fyne.io/fyne/v2/data/binding"
+	"mqttToInfluxDB/internal/commons"
+)
 
 type (
 	Device struct {
@@ -8,10 +11,12 @@ type (
 		DeviceType string
 		Displayed  bool
 		LastUpdate string
-		Properties map[string]Property
+		Bond       binding.ExternalString // to LastUpdate
+		Properties map[string]*Property
 	}
 	Property struct {
 		Name  string
+		Bond  binding.ExternalString // to Value
 		Value string
 	}
 )
@@ -23,7 +28,7 @@ func (d *Device) IsGarageType() bool {
 	return d.DeviceType == commons.GarageType
 }
 func (d *Device) IsGarageOpen() bool {
-	if state, ok := d.Properties[commons.PositionProperty]; ok && (state.Value == "UP" || state.Value == "OPEN") {
+	if state, ok := d.Properties[commons.StateProperty]; ok && (state.Value == "UP" || state.Value == "OPEN") {
 		return true
 	}
 	return false

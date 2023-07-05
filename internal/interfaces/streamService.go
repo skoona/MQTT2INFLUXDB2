@@ -1,7 +1,7 @@
 package interfaces
 
 type StreamService interface {
-	Enable()
+	Enable() error
 	Disable()
 	GetDeviceRepo() DeviceRepository
 	GetStreamConsumer() StreamConsumer
