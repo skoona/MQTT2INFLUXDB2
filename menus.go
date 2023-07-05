@@ -42,6 +42,24 @@ func PreferencesPage() *fyne.Container {
 	})
 	influxEnable.SetChecked(commons.IsInfluxDBEnabled())
 
+	debugEnable := widget.NewCheck("Enable Debug Mode", func(onOff bool) {
+		if onOff {
+			commons.SetEnableDebugMode("true")
+		} else {
+			commons.SetEnableDebugMode("false")
+		}
+	})
+	debugEnable.SetChecked(commons.IsDebugMode())
+
+	testEnable := widget.NewCheck("Enable Test Mode", func(onOff bool) {
+		if onOff {
+			commons.SetEnableTestMode("true")
+		} else {
+			commons.SetEnableTestMode("false")
+		}
+	})
+	testEnable.SetChecked(commons.IsTestMode())
+
 	mqttUri := widget.NewEntry()
 	mqttUri.SetPlaceHolder("MQTT ip tcp://10.100.1.16:1883")
 	mqttUri.SetText(commons.GetMqttHostUri())
@@ -58,11 +76,14 @@ func PreferencesPage() *fyne.Container {
 			{Text: "InfluxDB2 Bucket Name", Widget: influxBucket},
 			{Text: "InfluxDB2 Organization", Widget: influxOrg},
 			{Text: "InfluxDB2 Security Token", Widget: influxToken},
-			{Text: "InfluxDB2 Enabled", Widget: influxEnable},
 
 			{Text: "MQTT Host Url", Widget: mqttUri},
 			{Text: "MQTT Username", Widget: mqttUser},
 			{Text: "MQTT Password", Widget: mqttPass},
+
+			{Text: "InfluxDB2 Enabled", Widget: influxEnable},
+			{Text: "Debug Mode Enabled", Widget: debugEnable},
+			{Text: "Test Mode Enabled", Widget: testEnable},
 		},
 		SubmitText: "Apply",
 	}

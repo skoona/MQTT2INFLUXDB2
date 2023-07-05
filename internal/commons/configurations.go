@@ -71,10 +71,13 @@ func GetConfigurationMap() map[string]string {
 }
 
 func IsDebugMode() bool {
-	return (appSettings[DebugMode] == "true")
+	return appSettings[DebugMode] == "true"
 }
 func IsTestMode() bool {
-	return (appSettings[TestMode] == "true")
+	return appSettings[TestMode] == "true"
+}
+func IsInfluxDBEnabled() bool {
+	return appSettings[EnableInfluxDB] == "true"
 }
 func GetCompanyName() string {
 	return appSettings[CompanyName]
@@ -84,9 +87,6 @@ func GetApplicationName() string {
 }
 func GetApplicationTitle() string {
 	return appSettings[ApplicationTitle]
-}
-func IsInfluxDBEnabled() bool {
-	return appSettings[EnableInfluxDB] == "true"
 }
 
 func GetInfluxHostUri() string {
@@ -111,7 +111,22 @@ func GetMqttUser() string {
 func GetMqttPass() string {
 	return appSettings[MqttPass]
 }
-
+func SetEnableDebugMode(newValue string) bool {
+	oldValue := appSettings[DebugMode]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[DebugMode] = newValue
+		return true
+	}
+	return false
+}
+func SetEnableTestMode(newValue string) bool {
+	oldValue := appSettings[TestMode]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[TestMode] = newValue
+		return true
+	}
+	return false
+}
 func SetEnableInfluxDB(newValue string) bool {
 	oldValue := appSettings[EnableInfluxDB]
 	if strings.Compare(newValue, oldValue) != 0 {
