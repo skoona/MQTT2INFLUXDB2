@@ -79,7 +79,7 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 				provider.Disconnect()
 				break
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(1 * time.Second)
 		}
 	}(ctx, mqttProvider)
 

@@ -5,6 +5,7 @@ go 1.20
 require (
 	fyne.io/fyne/v2 v2.3.5
 	github.com/eclipse/paho.mqtt.golang v1.4.2
+	github.com/hashicorp/go-uuid v1.0.1
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
 )
 

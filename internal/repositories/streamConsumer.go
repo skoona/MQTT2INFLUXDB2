@@ -58,7 +58,7 @@ func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage
 				consume.Disconnect()
 				break
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(1 * time.Second)
 		}
 	}(ctx, repo)
 
