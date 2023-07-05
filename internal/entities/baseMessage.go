@@ -3,33 +3,34 @@ package entities
 import (
 	"encoding/json"
 	"fmt"
+	"mqttToInfluxDB/internal/commons"
 	"strings"
 	"time"
 )
 
 type baseMessage struct {
-	topic     string    `json:"-,omitempty"`
-	network   string    `json:"-,omitempty"`
-	device    string    `json:"-,omitempty"`
-	node      string    `json:"-,omitempty"`
-	property  string    `json:"-,omitempty"`
-	value     string    `json:"-,omitempty"`
-	timestamp time.Time `json:"-,omitempty"`
-	actual    int       `json:"range"`
-	average   int       `json:"average"`
-	mapped    int       `json:"mapped"`
-	status    string    `json:"status"`
-	rawStatus int       `json:"raw_status"`
-	signal    float32   `json:"signal"`
-	ambient   float32   `json:"ambient"`
-	movement  string    `json:"movement"`
+	topic     string
+	network   string
+	device    string
+	node      string
+	property  string
+	value     string
+	timestamp time.Time
+	ActualI   int     `json:"range"`
+	Average   int     `json:"average"`
+	Mapped    int     `json:"mapped"`
+	Status    string  `json:"status"`
+	RawStatus int     `json:"raw_status"`
+	Signal    float32 `json:"signal"`
+	AmbientF  float32 `json:"ambient"`
+	Movement  string  `json:"movement"`
 }
 
 func NewStreamMessage(topic, value string) (*baseMessage, error) {
 	base := &baseMessage{}
 	parts := strings.Split(topic, "/")
 
-	if strings.Contains(parts[3], GarageProperty) {
+	if strings.Contains(parts[3], commons.GarageProperty) {
 		err := json.Unmarshal([]byte(value), base)
 		if err != nil {
 			fmt.Println("JSON Parse Error: ", err.Error())
@@ -48,7 +49,7 @@ func NewStreamMessage(topic, value string) (*baseMessage, error) {
 }
 
 func (s *baseMessage) IsGarageDoor() bool {
-	return s.property == GarageProperty
+	return s.property == commons.GarageProperty
 }
 func (s *baseMessage) Topic() string {
 	return s.topic
@@ -72,17 +73,17 @@ func (s *baseMessage) Timestamp() string {
 	return s.timestamp.Format(time.RFC3339)
 }
 func (s *baseMessage) Ambient() float32 {
-	return s.ambient
+	return s.AmbientF
 }
 func (s *baseMessage) Actual() int {
-	return s.actual
+	return s.ActualI
 }
 func (s *baseMessage) Position() int {
-	return s.mapped
+	return s.Mapped
 }
 func (s *baseMessage) SignalStrength() float32 {
-	return s.signal
+	return s.Signal
 }
 func (s *baseMessage) State() string {
-	return s.movement
+	return s.Movement
 }

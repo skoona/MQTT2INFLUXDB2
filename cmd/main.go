@@ -21,18 +21,39 @@ import (
 	"context"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"mqttToInfluxDB/internal/commons"
 	"mqttToInfluxDB/internal/services"
 	"mqttToInfluxDB/internal/ui"
+	"time"
 )
 
 func main() {
-	ctxService, cancelService := context.WithCancel(context.Background())
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, commons.SknAppIDKey, "net.skoona.mq2influx")
+
+	gui := app.NewWithID("net.skoona.mq2influx")
+	_ = commons.AppSettings(ctx, gui)
+
+	ctx = context.WithValue(ctx, commons.InfluxHostUriKey, commons.GetInfluxHostUri()) // strings
+	ctx = context.WithValue(ctx, commons.InfluxBucketKey, commons.GetInfluxBucket())
+	ctx = context.WithValue(ctx, commons.InfluxOrgKey, commons.GetInfluxOrg())
+	ctx = context.WithValue(ctx, commons.InfluxTokenKey, commons.GetInfluxToken())
+	ctx = context.WithValue(ctx, commons.MqttHostUriKey, commons.GetMqttHostUri())
+	ctx = context.WithValue(ctx, commons.MqttUserKey, commons.GetMqttUser())
+	ctx = context.WithValue(ctx, commons.MqttPassKey, commons.GetMqttPass())
+	ctx = context.WithValue(ctx, commons.DebugModeKey, commons.IsDebugMode()) // bool
+	ctx = context.WithValue(ctx, commons.TestModeKey, commons.IsTestMode())   // bool
+	ctxService, cancelService := context.WithCancel(ctx)
+
 	service := services.NewStreamService(ctxService)
 	service.Enable()
 
-	gui := app.New()
 	win := gui.NewWindow("MQTT to InfluxDB2")
+	sknMenus(gui, win)
+	SknTrayMenu(gui, win)
 	win.Resize(fyne.NewSize(1024, 756))
+
+	time.Sleep(10 * time.Second)
 
 	viewProvider := ui.NewViewProvider(ctxService, service)
 	win.SetContent(viewProvider.MainPage())

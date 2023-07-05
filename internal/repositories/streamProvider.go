@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/hashicorp/go-uuid"
+	"mqttToInfluxDB/internal/commons"
 	"mqttToInfluxDB/internal/entities"
 	"mqttToInfluxDB/internal/interfaces"
-	"os"
 	"time"
 )
 
@@ -41,11 +42,12 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 		topics = append(topics, k)
 	}
 
+	clientIdValue, _ := uuid.GenerateUUID()
 	opts := MQTT.NewClientOptions()
-	opts.AddBroker(os.Getenv("MQTT_URI"))
-	opts.SetClientID("mqttToInfluxDB2")
-	opts.SetUsername(os.Getenv("MQTT_USER"))
-	opts.SetPassword(os.Getenv("MQTT_PASS"))
+	opts.AddBroker(ctx.Value(commons.MqttHostUriKey).(string))
+	opts.SetClientID(clientIdValue)
+	opts.SetUsername(ctx.Value(commons.MqttUserKey).(string))
+	opts.SetPassword(ctx.Value(commons.MqttPassKey).(string))
 	opts.SetCleanSession(true)
 	opts.SetDefaultPublishHandler(func(client MQTT.Client, msg MQTT.Message) {
 		sm, _ := entities.NewStreamMessage(msg.Topic(), string(msg.Payload()))

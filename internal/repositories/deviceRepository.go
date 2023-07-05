@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"mqttToInfluxDB/internal/commons"
 	"mqttToInfluxDB/internal/entities"
 	"mqttToInfluxDB/internal/interfaces"
 )
@@ -22,13 +23,14 @@ func NewDeviceRepository(ctx context.Context) interfaces.DeviceRepository {
 }
 
 func (d *deviceProvider) NewDevice(msg interfaces.StreamMessage) entities.Device {
-	dType := entities.SensorType
+	dType := commons.SensorType
 	if msg.IsGarageDoor() {
-		dType = entities.GarageType
+		dType = commons.GarageType
 	}
 	device := entities.Device{
 		Name:       msg.Device(),
 		DeviceType: dType,
+		LastUpdate: msg.Timestamp(),
 		Properties: map[string]entities.Property{},
 	}
 	device.Properties[msg.Property()] = entities.Property{
@@ -37,24 +39,24 @@ func (d *deviceProvider) NewDevice(msg interfaces.StreamMessage) entities.Device
 	}
 
 	if msg.IsGarageDoor() {
-		device.Properties[entities.ActualProperty] = entities.Property{
-			Name:  entities.ActualProperty,
-			Value: fmt.Sprint(msg.Actual()),
+		device.Properties[commons.ActualProperty] = entities.Property{
+			Name:  commons.ActualProperty,
+			Value: fmt.Sprintf("%d", msg.Actual()),
 		}
-		device.Properties[entities.AmbientProperty] = entities.Property{
-			Name:  entities.AmbientProperty,
-			Value: fmt.Sprint(msg.Ambient()),
+		device.Properties[commons.AmbientProperty] = entities.Property{
+			Name:  commons.AmbientProperty,
+			Value: fmt.Sprintf("%3.2f", msg.Ambient()),
 		}
-		device.Properties[entities.PositionProperty] = entities.Property{
-			Name:  entities.PositionProperty,
-			Value: fmt.Sprint(msg.Position()),
+		device.Properties[commons.PositionProperty] = entities.Property{
+			Name:  commons.PositionProperty,
+			Value: fmt.Sprintf("%d", msg.Position()),
 		}
-		device.Properties[entities.SignalStrengthProperty] = entities.Property{
-			Name:  entities.SignalStrengthProperty,
-			Value: fmt.Sprint(msg.SignalStrength()),
+		device.Properties[commons.SignalStrengthProperty] = entities.Property{
+			Name:  commons.SignalStrengthProperty,
+			Value: fmt.Sprintf("%3.2f", msg.SignalStrength()),
 		}
-		device.Properties[entities.StateProperty] = entities.Property{
-			Name:  entities.StateProperty,
+		device.Properties[commons.StateProperty] = entities.Property{
+			Name:  commons.StateProperty,
 			Value: msg.State(),
 		}
 	}
@@ -69,6 +71,7 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 		device = d.NewDevice(msg)
 		return
 	}
+	device.LastUpdate = msg.Timestamp()
 
 	property, ok := device.Properties[msg.Property()]
 	if !ok {
@@ -81,51 +84,52 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 	}
 
 	if msg.IsGarageDoor() {
-		property, ok := device.Properties[entities.ActualProperty]
+		device.DeviceType = commons.GarageType
+
+		property, ok := device.Properties[commons.ActualProperty]
 		if !ok {
-			device.Properties[entities.ActualProperty] = entities.Property{
-				Name:  entities.ActualProperty,
-				Value: fmt.Sprint(msg.Actual()),
+			device.Properties[commons.ActualProperty] = entities.Property{
+				Name:  commons.ActualProperty,
+				Value: fmt.Sprintf("%d", msg.Actual()),
 			}
 		}
-		property.Value = fmt.Sprint(msg.Actual())
+		property.Value = fmt.Sprintf("%d", msg.Actual())
 
-		property, ok = device.Properties[entities.AmbientProperty]
+		property, ok = device.Properties[commons.AmbientProperty]
 		if !ok {
-			device.Properties[entities.AmbientProperty] = entities.Property{
-				Name:  entities.AmbientProperty,
-				Value: fmt.Sprint(msg.Ambient()),
+			device.Properties[commons.AmbientProperty] = entities.Property{
+				Name:  commons.AmbientProperty,
+				Value: fmt.Sprintf("%3.2f", msg.Ambient()),
 			}
 		}
-		property.Value = fmt.Sprint(msg.Ambient())
+		property.Value = fmt.Sprintf("%3.2f", msg.Ambient())
 
-		property, ok = device.Properties[entities.PositionProperty]
+		property, ok = device.Properties[commons.PositionProperty]
 		if !ok {
-			device.Properties[entities.PositionProperty] = entities.Property{
-				Name:  entities.PositionProperty,
-				Value: fmt.Sprint(msg.Position()),
+			device.Properties[commons.PositionProperty] = entities.Property{
+				Name:  commons.PositionProperty,
+				Value: fmt.Sprintf("%d", msg.Position()),
 			}
 		}
-		property.Value = fmt.Sprint(msg.Position())
+		property.Value = fmt.Sprintf("%d", msg.Position())
 
-		property, ok = device.Properties[entities.SignalStrengthProperty]
+		property, ok = device.Properties[commons.SignalStrengthProperty]
 		if !ok {
-			device.Properties[entities.SignalStrengthProperty] = entities.Property{
-				Name:  entities.SignalStrengthProperty,
-				Value: fmt.Sprint(msg.SignalStrength()),
+			device.Properties[commons.SignalStrengthProperty] = entities.Property{
+				Name:  commons.SignalStrengthProperty,
+				Value: fmt.Sprintf("%3.2f", msg.SignalStrength()),
 			}
 		}
-		property.Value = fmt.Sprint(msg.SignalStrength())
+		property.Value = fmt.Sprintf("%3.2f", msg.SignalStrength())
 
-		property, ok = device.Properties[entities.StateProperty]
+		property, ok = device.Properties[commons.StateProperty]
 		if !ok {
-			device.Properties[entities.StateProperty] = entities.Property{
-				Name:  entities.StateProperty,
-				Value: fmt.Sprint(msg.State()),
+			device.Properties[commons.StateProperty] = entities.Property{
+				Name:  commons.StateProperty,
+				Value: msg.State(),
 			}
 		}
-		property.Value = fmt.Sprint(msg.State())
-
+		property.Value = msg.State()
 	}
 
 }

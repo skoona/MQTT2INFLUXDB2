@@ -6,8 +6,8 @@ import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
+	"mqttToInfluxDB/internal/commons"
 	"mqttToInfluxDB/internal/interfaces"
-	"os"
 	"time"
 )
 
@@ -22,10 +22,10 @@ var _ interfaces.StreamConsumer = (*consumer)(nil)
 
 func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage, devStore interfaces.DeviceRepository) interfaces.StreamConsumer {
 
-	bucket := os.Getenv("INFLUXDB_BUCKET")
-	org := os.Getenv("INFLUXDB_ORG")
-	token := os.Getenv("INFLUXDB_TOKEN")
-	url := os.Getenv("INFLUXDB_URI")
+	bucket := ctx.Value(commons.InfluxBucketKey).(string)
+	org := ctx.Value(commons.InfluxOrgKey).(string)
+	token := ctx.Value(commons.InfluxTokenKey).(string)
+	url := ctx.Value(commons.InfluxHostUriKey).(string)
 
 	repo := &consumer{ctx: ctx, stream: stream}
 
