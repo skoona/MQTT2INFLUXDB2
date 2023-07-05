@@ -52,7 +52,7 @@ func main() {
 	ctxService, cancelService := context.WithCancel(ctx)
 
 	onLine := true
-	service := services.NewStreamService(ctxService, false)
+	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled())
 	err := service.Enable()
 	if err != nil {
 		// configuration failure

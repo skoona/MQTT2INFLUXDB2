@@ -33,6 +33,15 @@ func PreferencesPage() *fyne.Container {
 	influxToken.SetPlaceHolder("InfluxDB2 security token")
 	influxToken.SetText(commons.GetInfluxToken())
 
+	influxEnable := widget.NewCheck("Enable InfluxDB", func(onOff bool) {
+		if onOff {
+			commons.SetEnableInfluxDB("true")
+		} else {
+			commons.SetEnableInfluxDB("false")
+		}
+	})
+	influxEnable.SetChecked(commons.IsInfluxDBEnabled())
+
 	mqttUri := widget.NewEntry()
 	mqttUri.SetPlaceHolder("MQTT ip tcp://10.100.1.16:1883")
 	mqttUri.SetText(commons.GetMqttHostUri())
@@ -49,6 +58,7 @@ func PreferencesPage() *fyne.Container {
 			{Text: "InfluxDB2 Bucket Name", Widget: influxBucket},
 			{Text: "InfluxDB2 Organization", Widget: influxOrg},
 			{Text: "InfluxDB2 Security Token", Widget: influxToken},
+			{Text: "InfluxDB2 Enabled", Widget: influxEnable},
 
 			{Text: "MQTT Host Url", Widget: mqttUri},
 			{Text: "MQTT Username", Widget: mqttUser},

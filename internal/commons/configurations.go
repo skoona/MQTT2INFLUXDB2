@@ -24,6 +24,7 @@ const (
 	MqttPass         = "mqttPass"
 	TestMode         = "testMode"
 	DebugMode        = "debugMode"
+	EnableInfluxDB   = "enableInfluxDB2"
 
 	// data modeling
 	GarageType             = "garage"
@@ -36,17 +37,18 @@ const (
 	StateProperty          = "State"
 
 	// context keys
-	TestModeKey      = 7
-	DebugModeKey     = 8
-	SknAppIDKey      = 9
-	InfluxHostUriKey = 10
-	InfluxBucketKey  = 11
-	InfluxOrgKey     = 12
-	InfluxTokenKey   = 13
-	MqttHostUriKey   = 14
-	MqttUserKey      = 15
-	MqttPassKey      = 16
-	FyneWindowKey    = 17
+	TestModeKey       = 7
+	DebugModeKey      = 8
+	SknAppIDKey       = 9
+	InfluxHostUriKey  = 10
+	InfluxBucketKey   = 11
+	InfluxOrgKey      = 12
+	InfluxTokenKey    = 13
+	MqttHostUriKey    = 14
+	MqttUserKey       = 15
+	MqttPassKey       = 16
+	FyneWindowKey     = 17
+	EnableInfluxDBKey = 18
 )
 
 var (
@@ -83,6 +85,9 @@ func GetApplicationName() string {
 func GetApplicationTitle() string {
 	return appSettings[ApplicationTitle]
 }
+func IsInfluxDBEnabled() bool {
+	return appSettings[EnableInfluxDB] == "true"
+}
 
 func GetInfluxHostUri() string {
 	return appSettings[InfluxHostUri]
@@ -107,6 +112,14 @@ func GetMqttPass() string {
 	return appSettings[MqttPass]
 }
 
+func SetEnableInfluxDB(newValue string) bool {
+	oldValue := appSettings[EnableInfluxDB]
+	if strings.Compare(newValue, oldValue) != 0 {
+		appSettings[EnableInfluxDB] = newValue
+		return true
+	}
+	return false
+}
 func SetInfluxHostUri(newValue string) bool {
 	oldValue := appSettings[InfluxHostUri]
 	if strings.Compare(newValue, oldValue) != 0 {
@@ -188,6 +201,7 @@ func AppSettings(ctx context.Context) map[string]string {
 		MqttPass:         "developer99",
 		TestMode:         "true",
 		DebugMode:        "true",
+		EnableInfluxDB:   "true",
 	}
 	appSettings = cfg
 
@@ -208,6 +222,10 @@ func AppSettings(ctx context.Context) map[string]string {
 	value = os.Getenv("ENABLE_DEBUG_MODE")
 	if value != "" {
 		cfg[DebugMode] = value
+	}
+	value = os.Getenv("ENABLE_INFLUXDB_MODE")
+	if value != "" {
+		cfg[EnableInfluxDB] = value
 	}
 
 	value = os.Getenv("INFLUXDB_URI")
