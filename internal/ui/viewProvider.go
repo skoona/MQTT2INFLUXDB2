@@ -2,7 +2,6 @@ package ui
 
 import (
 	"context"
-	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
@@ -29,6 +28,8 @@ type viewProvider struct {
 	mainPage   *fyne.Container
 	status     *widget.Label
 	refresh    *widget.Button
+	msgCounter *widget.Label
+	devCounter *widget.Label
 	mainWindow fyne.Window
 	service    interfaces.StreamService
 }
@@ -44,9 +45,11 @@ func NewViewProvider(ctx context.Context, service interfaces.StreamService) View
 		cards:      map[string]*fyne.Container{},
 		status:     widget.NewLabel("place holder"),
 	}
+
+	view.msgCounter = widget.NewLabelWithData(*view.service.GetDeviceRepo().GetMessageCount())
+	view.devCounter = widget.NewLabelWithData(*view.service.GetDeviceRepo().GetDeviceCount())
+
 	view.refresh = widget.NewButtonWithIcon("refresh", theme.ViewRefreshIcon(), func() {
-		msg := fmt.Sprintf("Device Count: %v", len(view.service.GetDeviceRepo().GetDevices()))
-		view.status.SetText(msg)
 		if view.UpdateUI() {
 			view.mainWindow.SetContent(view.mainPage)
 		} else {
@@ -59,20 +62,14 @@ func NewViewProvider(ctx context.Context, service interfaces.StreamService) View
 }
 func (v *viewProvider) NewCard(device *entities.Device) *fyne.Container {
 	device.SetDisplayed(true)
-	border := canvas.NewRectangle(theme.OverlayBackgroundColor()) //  .InputBackgroundColor())
+	border := canvas.NewRectangle(theme.BackgroundColor())
 	border.StrokeColor = theme.InputBorderColor()
 	border.StrokeWidth = 4
 	props := container.New(layout.NewFormLayout())
 	for name, prop := range device.Properties {
 		if name != commons.GarageProperty {
-			//if prop.Bond == nil {
-			//	prop.Bond = binding.BindString(&prop.Value)
-			//}
-			n := widget.NewLabel(prop.Name)
-			d := widget.NewLabelWithData(prop.Bond)
-
-			props.Add(n)
-			props.Add(d)
+			props.Add(widget.NewLabel(prop.Name))
+			props.Add(widget.NewLabelWithData(prop.Bond))
 		}
 	}
 	card := widget.NewCard(device.Name, device.UpdatedAt(), props)
@@ -120,7 +117,7 @@ func (v *viewProvider) UpdateUI() bool {
 			for name, prop := range dev.Properties {
 				if name != commons.GarageProperty {
 					skip := false
-					// find in card then add
+					// find in card then skip
 					for _, wid := range card.Objects[1].(*widget.Card).Content.(*fyne.Container).Objects {
 						item := wid.(*widget.Label)
 						if item.Text == name {
@@ -138,16 +135,27 @@ func (v *viewProvider) UpdateUI() bool {
 			}
 		}
 	}
+	if added {
+		v.SetStatusLineText("new card added")
+	}
 	return added
 }
 func (v *viewProvider) MainPage() *fyne.Container {
-	msg := fmt.Sprintf("Device Count: %v", len(v.service.GetDeviceRepo().GetDevices()))
-	v.SetStatusLineText(msg)
+	v.SetStatusLineText("page updated")
 	grid := container.NewGridWithColumns(4)
 	for _, card := range v.cards {
 		grid.Add(card)
 	}
-	v.mainPage = container.NewBorder(nil, container.NewHBox(v.refresh, v.status), nil, nil, grid)
+	v.mainPage = container.NewBorder(
+		nil,
+		container.NewHBox(v.refresh,
+			widget.NewLabel(" Devices:"), v.devCounter,
+			widget.NewLabel(" Msgs processed:"), v.msgCounter,
+			v.status,
+		),
+		nil,
+		nil,
+		grid)
 
 	return v.mainPage
 }

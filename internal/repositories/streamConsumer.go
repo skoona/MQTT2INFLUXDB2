@@ -22,6 +22,8 @@ var _ interfaces.StreamConsumer = (*consumer)(nil)
 
 func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage, devStore interfaces.DeviceRepository) interfaces.StreamConsumer {
 
+	debug := ctx.Value(commons.DebugModeKey).(bool)
+
 	bucket := ctx.Value(commons.InfluxBucketKey).(string)
 	org := ctx.Value(commons.InfluxOrgKey).(string)
 	token := ctx.Value(commons.InfluxTokenKey).(string)
@@ -41,7 +43,9 @@ func NewStreamConsumer(ctx context.Context, stream chan interfaces.StreamMessage
 	go func(consume interfaces.StreamConsumer, devStore interfaces.DeviceRepository) {
 		fmt.Println("====> StreamConsumer() Listening")
 		for msg := range consume.GetStream() {
-			fmt.Printf("[%s] DEVICE: %s\tPROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Property(), msg.Value())
+			if debug {
+				fmt.Printf("[%s] DEVICE: %s\tPROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Property(), msg.Value())
+			}
 			devStore.ApplyMessage(msg)
 			_ = consume.Write(msg)
 		}

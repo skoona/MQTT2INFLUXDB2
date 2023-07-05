@@ -1,6 +1,9 @@
 package interfaces
 
-import "mqttToInfluxDB/internal/entities"
+import (
+	"fyne.io/fyne/v2/data/binding"
+	"mqttToInfluxDB/internal/entities"
+)
 
 type DeviceRepository interface {
 	ApplyMessage(msg StreamMessage)
@@ -10,4 +13,6 @@ type DeviceRepository interface {
 	GetNamedProperty(deviceName, property string) *entities.Property
 	GetDevices() map[string]*entities.Device
 	GetProperties(deviceName string) map[string]*entities.Property
+	GetMessageCount() *binding.ExternalString
+	GetDeviceCount() *binding.ExternalString
 }

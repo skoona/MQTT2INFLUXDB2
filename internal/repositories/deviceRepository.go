@@ -7,11 +7,17 @@ import (
 	"mqttToInfluxDB/internal/commons"
 	"mqttToInfluxDB/internal/entities"
 	"mqttToInfluxDB/internal/interfaces"
+	"strconv"
 )
 
 type deviceProvider struct {
-	devices map[string]*entities.Device
-	ctx     context.Context
+	devices    map[string]*entities.Device
+	ctx        context.Context
+	msgCount   int
+	bMsgCntStr string
+	bMsgCount  binding.ExternalString
+	bDevCntStr string
+	bDevCount  binding.ExternalString
 }
 
 func NewDeviceRepository(ctx context.Context) interfaces.DeviceRepository {
@@ -19,6 +25,8 @@ func NewDeviceRepository(ctx context.Context) interfaces.DeviceRepository {
 		devices: map[string]*entities.Device{},
 		ctx:     ctx,
 	}
+	devices.bMsgCount = binding.BindString(&devices.bMsgCntStr)
+	devices.bDevCount = binding.BindString(&devices.bDevCntStr)
 
 	return devices
 }
@@ -28,6 +36,7 @@ func (d *deviceProvider) NewDevice(msg interfaces.StreamMessage) *entities.Devic
 	if msg.IsGarageDoor() {
 		dType = commons.GarageType
 	}
+
 	device := &entities.Device{
 		Name:       msg.Device(),
 		DeviceType: dType,
@@ -81,10 +90,17 @@ func (d *deviceProvider) NewDevice(msg interfaces.StreamMessage) *entities.Devic
 
 	d.devices[msg.Device()] = device
 
+	d.bDevCntStr = strconv.Itoa(len(d.devices))
+	_ = d.bDevCount.Set(d.bDevCntStr)
+
 	return device
 }
 func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 	device, ok := d.devices[msg.Device()]
+	d.msgCount += 1
+	d.bMsgCntStr = strconv.Itoa(d.msgCount)
+	_ = d.bMsgCount.Set(d.bMsgCntStr)
+
 	if !ok {
 		_ = d.NewDevice(msg)
 		return
@@ -107,9 +123,7 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 
 	} else {
 		property.Value = msg.Value()
-		//if property.Bond != nil {
 		_ = property.Bond.Set(property.Value)
-		//}
 	}
 
 	if msg.IsGarageDoor() {
@@ -125,9 +139,7 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 			prop.Bond = binding.BindString(&prop.Value)
 		} else {
 			property.Value = fmt.Sprintf("%d", msg.Actual())
-			//if property.Bond != nil {
 			_ = property.Bond.Set(property.Value)
-			//}
 		}
 
 		property, ok = device.Properties[commons.AmbientProperty]
@@ -140,9 +152,7 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 			prop.Bond = binding.BindString(&prop.Value)
 		} else {
 			property.Value = fmt.Sprintf("%3.2f", msg.Ambient())
-			//if property.Bond != nil {
 			_ = property.Bond.Set(property.Value)
-			//}
 		}
 
 		property, ok = device.Properties[commons.PositionProperty]
@@ -155,9 +165,7 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 			prop.Bond = binding.BindString(&prop.Value)
 		} else {
 			property.Value = fmt.Sprintf("%d", msg.Position())
-			//if property.Bond != nil {
 			_ = property.Bond.Set(property.Value)
-			//}
 		}
 
 		property, ok = device.Properties[commons.SignalStrengthProperty]
@@ -170,9 +178,7 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 			prop.Bond = binding.BindString(&prop.Value)
 		} else {
 			property.Value = fmt.Sprintf("%3.2f", msg.SignalStrength())
-			//if property.Bond != nil {
 			_ = property.Bond.Set(property.Value)
-			//}
 		}
 
 		property, ok = device.Properties[commons.StateProperty]
@@ -185,9 +191,7 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 			prop.Bond = binding.BindString(&prop.Value)
 		} else {
 			property.Value = msg.State()
-			//if property.Bond != nil {
 			_ = property.Bond.Set(property.Value)
-			//}
 		}
 	}
 
@@ -203,4 +207,10 @@ func (d *deviceProvider) GetDevices() map[string]*entities.Device {
 }
 func (d *deviceProvider) GetProperties(deviceName string) map[string]*entities.Property {
 	return d.devices[deviceName].Properties
+}
+func (d *deviceProvider) GetMessageCount() *binding.ExternalString {
+	return &d.bMsgCount
+}
+func (d *deviceProvider) GetDeviceCount() *binding.ExternalString {
+	return &d.bDevCount
 }

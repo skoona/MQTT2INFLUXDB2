@@ -164,9 +164,9 @@ func SetMqttPass(newValue string) bool {
 	return false
 }
 
-// AppSettings collects env params and same preferences with env value priority
-func AppSettings(ctx context.Context, a fyne.App) map[string]string {
-	fyne_instance = a
+// AppSettings collects env params and saved preferences. env value override
+func AppSettings(ctx context.Context) map[string]string {
+	fyne_instance = fyne.CurrentApp()
 	appID := ctx.Value(SknAppIDKey).(string)
 	if appID == "" {
 		appID = "net.skoona.mq2influx"

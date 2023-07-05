@@ -31,7 +31,7 @@ func main() {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, commons.SknAppIDKey, "net.skoona.mq2influx")
 
-	_ = commons.AppSettings(ctx, nil)
+	_ = commons.AppSettings(ctx)
 
 	ctx = context.WithValue(ctx, commons.InfluxHostUriKey, commons.GetInfluxHostUri()) // strings
 	ctx = context.WithValue(ctx, commons.InfluxBucketKey, commons.GetInfluxBucket())
@@ -46,6 +46,7 @@ func main() {
 
 	service := services.NewStreamService(ctxService)
 	if err := service.Enable(); err != nil {
+		fmt.Println("ERROR: shutdown requested cause:", err.Error())
 		cancelService()
 	} else {
 
