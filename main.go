@@ -52,7 +52,8 @@ func main() {
 	ctxService, cancelService := context.WithCancel(ctx)
 
 	onLine := true
-	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled())
+	enbledDataStore := true
+	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), enbledDataStore)
 	err := service.Enable()
 	if err != nil {
 		// configuration failure

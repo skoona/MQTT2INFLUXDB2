@@ -9,31 +9,38 @@ import (
 )
 
 type streamService struct {
-	ctx      context.Context
-	stream   chan interfaces.StreamMessage
-	provider interfaces.StreamProvider
-	consumer interfaces.StreamConsumer
-	devStore interfaces.DeviceRepository
+	ctx             context.Context
+	enableDataStore bool
+	enableInflux    bool
+	stream          chan interfaces.StreamMessage
+	provider        interfaces.StreamProvider
+	consumer        interfaces.StreamConsumer
+	devStore        interfaces.DeviceRepository
 }
 
 var _ interfaces.StreamService = (*streamService)(nil)
 
-func NewStreamService(ctx context.Context, enableInflux bool) interfaces.StreamService {
+func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool) interfaces.StreamService {
 	var consumer interfaces.StreamConsumer
+	var devStore interfaces.DeviceRepository
 
 	stream := make(chan interfaces.StreamMessage, 64)
-	devStore := repositories.NewDeviceRepository(ctx)
-	provider := repositories.NewStreamProvider(ctx, stream)
+	if enabledDataStore {
+		devStore = repositories.NewDeviceRepository(ctx)
+	}
 	if enableInflux {
 		consumer = repositories.NewStreamConsumer(ctx)
 	}
+	provider := repositories.NewStreamProvider(ctx, stream)
 
 	return &streamService{
-		ctx:      ctx,
-		stream:   stream,
-		provider: provider,
-		consumer: consumer,
-		devStore: devStore,
+		ctx:             ctx,
+		enableDataStore: enabledDataStore,
+		enableInflux:    enableInflux,
+		stream:          stream,
+		provider:        provider,
+		consumer:        consumer,
+		devStore:        devStore,
 	}
 }
 
@@ -46,8 +53,10 @@ func (s *streamService) Enable() error {
 			if debug {
 				fmt.Printf("[%s] DEVICE: %s\tPROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Property(), msg.Value())
 			}
-			devStore.ApplyMessage(msg)
-			if consume != nil {
+			if s.enableDataStore {
+				devStore.ApplyMessage(msg)
+			}
+			if s.enableInflux {
 				_ = consume.Write(msg)
 			}
 		}

@@ -44,12 +44,13 @@ func main() {
 	ctx = context.WithValue(ctx, commons.TestModeKey, commons.IsTestMode())   // bool
 	ctxService, cancelService := context.WithCancel(ctx)
 
-	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled())
+	enbledDataStore := false
+	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), enbledDataStore)
 	if err := service.Enable(); err != nil {
 		fmt.Println("ERROR: shutdown requested cause:", err.Error())
 		cancelService()
-	} else {
 
+	} else {
 		/*
 		 * Prepare for clean exit
 		 */
