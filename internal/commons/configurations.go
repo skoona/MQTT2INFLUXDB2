@@ -210,12 +210,12 @@ func AppSettings(ctx context.Context) map[string]string {
 		InfluxHostUri:    "http://127.0.0.1:8086",
 		InfluxBucket:     "homie",
 		InfluxOrg:        "skoona.net",
-		InfluxToken:      "somelonghexvale",
+		InfluxToken:      "somelonghexvalue",
 		MqttHostUri:      "tcp://127.0.0.1:1883",
 		MqttUser:         "developer",
 		MqttPass:         "developer99",
-		TestMode:         "true",
-		DebugMode:        "true",
+		TestMode:         "false",
+		DebugMode:        "false",
 		EnableInfluxDB:   "true",
 	}
 	appSettings = cfg

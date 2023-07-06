@@ -15,17 +15,16 @@ var (
 	topics = []string{}
 
 	topicsMap = map[string]byte{
-		"sknSensors/+/Ambient/humidity":    byte(1),
-		"sknSensors/+/Ambient/temperature": byte(1),
-		"sknSensors/+/Occupancy/motion":    byte(1),
-		"sknSensors/+/Occupancy/occupancy": byte(1),
-		"sknSensors/+/Presence/motion":     byte(1),
-		"sknSensors/+/SknRanger/Position":  byte(1),
-		"sknSensors/+/SknRanger/State":     byte(1),
-		"sknSensors/+/SknRanger/Details":   byte(1),
-		"sknSensors/+/LEDBanner/message":   byte(1),
-		"sknSensors/+/$fw/name":            byte(1),
-		//"sknSensors/+/wiredMonitor/+":      byte(1),
+		"+/+/+/humidity":    byte(1),
+		"+/+/+/temperature": byte(1),
+		"+/+/+/motion":      byte(1),
+		"+/+/+/occupancy":   byte(1),
+		"+/+/+/Position":    byte(1),
+		"+/+/+/State":       byte(1),
+		"+/+/+/Details":     byte(1),
+		"+/+/+/message":     byte(1),
+		"+/+/+/name":        byte(1),
+		"+/+/+/heartbeat":   byte(1),
 	}
 )
 
