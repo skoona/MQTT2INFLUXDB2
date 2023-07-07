@@ -57,7 +57,6 @@ func main() {
 	err := service.Enable()
 	if err != nil {
 		// configuration failure
-		err.Error()
 		onLine = false
 	}
 
@@ -65,10 +64,9 @@ func main() {
 	SknTrayMenu(gui, win)
 	win.Resize(fyne.NewSize(1024, 756))
 
-	time.Sleep(4 * time.Second)
-
 	viewProvider := ui.NewViewProvider(ctxService, service)
 	if onLine {
+		time.Sleep(3 * time.Second)
 		win.SetContent(viewProvider.MainPage())
 	} else {
 		if err != nil {
@@ -89,5 +87,6 @@ func main() {
 
 	win.ShowAndRun()
 	cancelService() // provider
+	time.Sleep(3 * time.Second)
 
 }

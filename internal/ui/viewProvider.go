@@ -2,10 +2,12 @@ package ui
 
 import (
 	"context"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -150,7 +152,6 @@ func (v *viewProvider) MainPage() *fyne.Container {
 	for _, card := range v.cards {
 		grid.Add(card)
 	}
-
 	m := widget.NewIcon(theme.FolderOpenIcon())
 	i := widget.NewIcon(theme.StorageIcon())
 	if v.service.GetStreamProvider() == nil {
@@ -190,6 +191,8 @@ func (v *viewProvider) ConfigFailedPage(msg string) *fyne.Container {
 	body := canvas.NewText("Set run configuration in menu `settings`", theme.WarningColor())
 	body.Alignment = fyne.TextAlignCenter
 	body.TextSize = 18
+
+	dialog.ShowError(fmt.Errorf("Configurating error: %s", fmt.Errorf(msg)), v.mainWindow)
 
 	return container.NewMax(
 		container.NewVBox(title),

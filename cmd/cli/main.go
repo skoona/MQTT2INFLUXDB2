@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -48,6 +49,7 @@ func main() {
 	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), enbledDataStore)
 	if err := service.Enable(); err != nil {
 		fmt.Println("ERROR: shutdown requested cause:", err.Error())
+		fmt.Println("Likely a configuration error, use environment vars to set runtime config values")
 		cancelService()
 
 	} else {
@@ -65,4 +67,6 @@ func main() {
 		}(errs)
 		fmt.Println("event ", "shutdown requested ", "cause:", <-errs) // errs holds it up
 	}
+
+	time.Sleep(3 * time.Second)
 }

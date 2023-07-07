@@ -5,7 +5,7 @@ import (
 	"mqttToInfluxDB/internal/entities"
 )
 
-type DeviceRepository interface {
+type StreamStorage interface {
 	ApplyMessage(msg StreamMessage)
 	NewDevice(msg StreamMessage) *entities.Device
 

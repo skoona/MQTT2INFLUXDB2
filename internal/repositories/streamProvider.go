@@ -87,9 +87,6 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 
 	return mqttProvider
 }
-func GetClient() MQTT.Client {
-	return mqttProvider.client
-}
 func (r *repo) IsOnline() bool {
 	return r.client.IsConnected()
 }

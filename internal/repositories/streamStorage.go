@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-type deviceProvider struct {
+type streamStorage struct {
 	devices    map[string]*entities.Device
 	ctx        context.Context
 	msgCount   int
@@ -20,8 +20,8 @@ type deviceProvider struct {
 	bDevCount  binding.ExternalString
 }
 
-func NewDeviceRepository(ctx context.Context) interfaces.DeviceRepository {
-	devices := &deviceProvider{
+func NewStreamStorage(ctx context.Context) interfaces.StreamStorage {
+	devices := &streamStorage{
 		devices: map[string]*entities.Device{},
 		ctx:     ctx,
 	}
@@ -31,7 +31,7 @@ func NewDeviceRepository(ctx context.Context) interfaces.DeviceRepository {
 	return devices
 }
 
-func (d *deviceProvider) NewDevice(msg interfaces.StreamMessage) *entities.Device {
+func (d *streamStorage) NewDevice(msg interfaces.StreamMessage) *entities.Device {
 	dType := commons.SensorType
 	if msg.IsGarageDoor() {
 		dType = commons.GarageType
@@ -95,7 +95,7 @@ func (d *deviceProvider) NewDevice(msg interfaces.StreamMessage) *entities.Devic
 
 	return device
 }
-func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
+func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
 	device, ok := d.devices[msg.Device()]
 	d.msgCount += 1
 	d.bMsgCntStr = strconv.Itoa(d.msgCount)
@@ -196,21 +196,21 @@ func (d *deviceProvider) ApplyMessage(msg interfaces.StreamMessage) {
 	}
 
 }
-func (d *deviceProvider) GetNamedDevice(deviceName string) *entities.Device {
+func (d *streamStorage) GetNamedDevice(deviceName string) *entities.Device {
 	return d.devices[deviceName]
 }
-func (d *deviceProvider) GetNamedProperty(deviceName, property string) *entities.Property {
+func (d *streamStorage) GetNamedProperty(deviceName, property string) *entities.Property {
 	return d.devices[deviceName].Properties[property]
 }
-func (d *deviceProvider) GetDevices() map[string]*entities.Device {
+func (d *streamStorage) GetDevices() map[string]*entities.Device {
 	return d.devices
 }
-func (d *deviceProvider) GetProperties(deviceName string) map[string]*entities.Property {
+func (d *streamStorage) GetProperties(deviceName string) map[string]*entities.Property {
 	return d.devices[deviceName].Properties
 }
-func (d *deviceProvider) GetMessageCount() *binding.ExternalString {
+func (d *streamStorage) GetMessageCount() *binding.ExternalString {
 	return &d.bMsgCount
 }
-func (d *deviceProvider) GetDeviceCount() *binding.ExternalString {
+func (d *streamStorage) GetDeviceCount() *binding.ExternalString {
 	return &d.bDevCount
 }

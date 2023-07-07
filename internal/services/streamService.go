@@ -15,18 +15,18 @@ type streamService struct {
 	stream          chan interfaces.StreamMessage
 	provider        interfaces.StreamProvider
 	consumer        interfaces.StreamConsumer
-	devStore        interfaces.DeviceRepository
+	devStore        interfaces.StreamStorage
 }
 
 var _ interfaces.StreamService = (*streamService)(nil)
 
 func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool) interfaces.StreamService {
 	var consumer interfaces.StreamConsumer
-	var devStore interfaces.DeviceRepository
+	var devStore interfaces.StreamStorage
 
 	stream := make(chan interfaces.StreamMessage, 64)
 	if enabledDataStore {
-		devStore = repositories.NewDeviceRepository(ctx)
+		devStore = repositories.NewStreamStorage(ctx)
 	}
 	if enableInflux {
 		consumer = repositories.NewStreamConsumer(ctx)
@@ -46,7 +46,7 @@ func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore b
 
 func (s *streamService) Enable() error {
 
-	go func(ctx context.Context, stream chan interfaces.StreamMessage, consume interfaces.StreamConsumer, devStore interfaces.DeviceRepository) {
+	go func(ctx context.Context, stream chan interfaces.StreamMessage, consume interfaces.StreamConsumer, devStore interfaces.StreamStorage) {
 		debug := ctx.Value(commons.DebugModeKey).(bool)
 		fmt.Println("====> StreamService() Listening")
 		for msg := range stream {
@@ -87,6 +87,6 @@ func (s *streamService) GetStreamProvider() interfaces.StreamProvider {
 func (s *streamService) GetStreamConsumer() interfaces.StreamConsumer {
 	return s.consumer
 }
-func (s *streamService) GetDeviceRepo() interfaces.DeviceRepository {
+func (s *streamService) GetDeviceRepo() interfaces.StreamStorage {
 	return s.devStore
 }
