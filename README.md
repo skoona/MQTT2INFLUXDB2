@@ -40,6 +40,7 @@ The focus is to collect environmental reading from sensors on the Homie network.
 
 
 ## Development Notes
+    Use build tags to generate gui or cli versions; --tags [gui|cli]
 	fyne data binding process require an address of an alternate object to be used for successful dynamic updates, and when source changes the object must be set.
 	Environment variables override the defaults and/or saved config in all cases.
 	InfluxDB2 channel can be turned off via settings or environment var

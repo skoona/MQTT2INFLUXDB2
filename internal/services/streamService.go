@@ -57,7 +57,9 @@ func (s *streamService) Enable() error {
 				devStore.ApplyMessage(msg)
 			}
 			if s.enableInflux {
-				_ = consume.Write(msg)
+				if msg.Property() != "heartbeat" {
+					_ = consume.Write(msg)
+				}
 			}
 		}
 	}(s.ctx, s.stream, s.consumer, s.devStore)
