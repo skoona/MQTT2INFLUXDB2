@@ -3,9 +3,13 @@ package services
 import (
 	"context"
 	"fmt"
+	"fyne.io/fyne/v2/theme"
+	"github.com/skoona/sknlinechart"
 	"mqttToInfluxDB/internal/commons"
 	"mqttToInfluxDB/internal/interfaces"
 	"mqttToInfluxDB/internal/repositories"
+	"strconv"
+	"time"
 )
 
 type streamService struct {
@@ -16,11 +20,12 @@ type streamService struct {
 	provider        interfaces.StreamProvider
 	consumer        interfaces.StreamConsumer
 	devStore        interfaces.StreamStorage
+	chart           sknlinechart.LineChart
 }
 
 var _ interfaces.StreamService = (*streamService)(nil)
 
-func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool) interfaces.StreamService {
+func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool, linechart sknlinechart.LineChart) interfaces.StreamService {
 	var consumer interfaces.StreamConsumer
 	var devStore interfaces.StreamStorage
 
@@ -41,28 +46,30 @@ func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore b
 		provider:        provider,
 		consumer:        consumer,
 		devStore:        devStore,
+		chart:           linechart,
 	}
 }
 
 func (s *streamService) Enable() error {
 
-	go func(ctx context.Context, stream chan interfaces.StreamMessage, consume interfaces.StreamConsumer, devStore interfaces.StreamStorage) {
-		debug := ctx.Value(commons.DebugModeKey).(bool)
+	go func(svc *streamService) {
+		debug := svc.ctx.Value(commons.DebugModeKey).(bool)
 		fmt.Println("====> StreamService() Listening")
-		for msg := range stream {
+		for msg := range svc.stream {
 			if debug {
 				fmt.Printf("[%s] DEVICE: %s\tPROPERTY: %s VALUE: %v\n", msg.Timestamp(), msg.Device(), msg.Property(), msg.Value())
 			}
 			if s.enableDataStore {
-				devStore.ApplyMessage(msg)
+				svc.devStore.ApplyMessage(msg)
 			}
 			if s.enableInflux {
 				if msg.Property() != "heartbeat" {
-					_ = consume.Write(msg)
+					_ = svc.consumer.Write(msg)
 				}
 			}
+			s.ChartEnvironmentals(msg)
 		}
-	}(s.ctx, s.stream, s.consumer, s.devStore)
+	}(s)
 
 	err := s.provider.Connect()
 	if err != nil {
@@ -91,4 +98,27 @@ func (s *streamService) GetStreamConsumer() interfaces.StreamConsumer {
 }
 func (s *streamService) GetDeviceRepo() interfaces.StreamStorage {
 	return s.devStore
+}
+
+func (s *streamService) ChartEnvironmentals(msg interfaces.StreamMessage) {
+	if msg.Property() != "temperature" && msg.Property() != "humidity" && msg.Property() != "Position" {
+		return
+	}
+
+	series := msg.Device() + "::" + msg.Property()
+
+	val, _ := strconv.ParseFloat(msg.Value(), 32)
+	clr := theme.ColorNameForeground
+	if msg.Property() == "Position" {
+		clr = theme.ColorPurple
+	}
+	if msg.Property() == "temperature" {
+		clr = theme.ColorYellow
+	}
+	if msg.Property() == "humidity" {
+		clr = theme.ColorBlue
+	}
+
+	point := sknlinechart.NewLineChartDatapoint(float32(val), string(clr), time.RFC3339)
+	s.chart.ApplyDataPoint(series, point)
 }

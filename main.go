@@ -25,6 +25,8 @@ import (
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"github.com/skoona/sknlinechart"
 	"mqttToInfluxDB/internal/commons"
 	"mqttToInfluxDB/internal/services"
 	"mqttToInfluxDB/internal/ui"
@@ -40,6 +42,7 @@ func main() {
 
 	gui := app.NewWithID("net.skoona.mq2influx")
 	win := gui.NewWindow("MQTT to InfluxDB2")
+	lgw := gui.NewWindow("Line Graph")
 	_ = commons.AppSettings(ctx)
 
 	ctx = context.WithValue(ctx, commons.InfluxHostUriKey, commons.GetInfluxHostUri()) // strings
@@ -54,29 +57,44 @@ func main() {
 	ctx = context.WithValue(ctx, commons.TestModeKey, commons.IsTestMode())   // bool
 	ctxService, cancelService := context.WithCancel(ctx)
 
+	points := map[string][]sknlinechart.LineChartDatapoint{}
+	skn, err := sknlinechart.NewLineChart("Testing", "Inside mqtt 2 influx", &points)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 	onLine := true
 	enbledDataStore := true
-	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), enbledDataStore)
-	err := service.Enable()
+	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), enbledDataStore, skn)
+	err = service.Enable()
 	if err != nil {
 		// configuration failure
 		onLine = false
 	}
 
 	sknMenus(gui, win)
-	SknTrayMenu(gui, win)
+	SknTrayMenu(gui, win, lgw)
 	win.Resize(fyne.NewSize(1024, 756))
 
 	viewProvider := ui.NewViewProvider(ctxService, service)
 	if onLine {
 		time.Sleep(3 * time.Second)
 		win.SetContent(viewProvider.MainPage())
+
+		lgw.Resize(fyne.NewSize(982, 452))
+		lgw.SetContent(container.NewPadded(skn))
+		lgw.CenterOnScreen()
+		lgw.SetCloseIntercept(func() { lgw.Hide() })
+
+		win.Show()
+		lgw.Show()
 	} else {
 		if err != nil {
 			win.SetContent(viewProvider.ConfigFailedPage(err.Error()))
 		} else {
 			win.SetContent(viewProvider.ConfigFailedPage("Unknown Error"))
 		}
+		win.Show()
 	}
 
 	go func() {
@@ -88,7 +106,8 @@ func main() {
 		gui.Quit()
 	}()
 
-	win.ShowAndRun()
+	gui.Run()
+
 	cancelService() // provider
 	time.Sleep(3 * time.Second)
 

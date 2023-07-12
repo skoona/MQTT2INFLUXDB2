@@ -116,12 +116,15 @@ func shortcutFocused(s fyne.Shortcut, w fyne.Window) {
 	}
 }
 
-func SknTrayMenu(a fyne.App, w fyne.Window) {
+func SknTrayMenu(a fyne.App, w fyne.Window, chart fyne.Window) {
 	// Add SystemBar Menu
 	if desk, ok := a.(desktop.App); ok {
 		m := fyne.NewMenu("Mqtt2InfluxDB2",
-			fyne.NewMenuItem("Show", func() {
+			fyne.NewMenuItem("Show main", func() {
 				w.Show()
+			}),
+			fyne.NewMenuItem("Show chart", func() {
+				chart.Show()
 			}))
 		desk.SetSystemTrayMenu(m)
 		desk.SetSystemTrayIcon(theme.VisibilityIcon())

@@ -6,4 +6,5 @@ type StreamService interface {
 	GetDeviceRepo() StreamStorage
 	GetStreamConsumer() StreamConsumer
 	GetStreamProvider() StreamProvider
+	ChartEnvironmentals(msg StreamMessage)
 }
