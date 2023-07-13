@@ -20,12 +20,12 @@ type streamService struct {
 	provider        interfaces.StreamProvider
 	consumer        interfaces.StreamConsumer
 	devStore        interfaces.StreamStorage
-	chart           sknlinechart.LineChart
+	chart           sknlinechart.SknLineChart
 }
 
 var _ interfaces.StreamService = (*streamService)(nil)
 
-func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool, linechart sknlinechart.LineChart) interfaces.StreamService {
+func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool, linechart sknlinechart.SknLineChart) interfaces.StreamService {
 	var consumer interfaces.StreamConsumer
 	var devStore interfaces.StreamStorage
 
@@ -105,20 +105,57 @@ func (s *streamService) ChartEnvironmentals(msg interfaces.StreamMessage) {
 		return
 	}
 
-	series := msg.Device() + "::" + msg.Property()
-
 	val, _ := strconv.ParseFloat(msg.Value(), 32)
 	clr := theme.ColorNameForeground
-	if msg.Property() == "Position" {
-		clr = theme.ColorPurple
-	}
-	if msg.Property() == "temperature" {
-		clr = theme.ColorYellow
-	}
-	if msg.Property() == "humidity" {
-		clr = theme.ColorBlue
+
+	// [red orange yellow green blue purple brown gray]
+	series := msg.Device() + "::" + msg.Property()
+
+	switch msg.Device() {
+	case "GarageMonitor":
+		if msg.Property() == "temperature" {
+			clr = theme.ColorRed
+		} else {
+			clr = theme.ColorBrown
+		}
+	case "GuestRoom":
+		if msg.Property() == "temperature" {
+			clr = theme.ColorOrange
+		} else {
+			clr = theme.ColorGray
+		}
+	case "FamilyRoom":
+		if msg.Property() == "temperature" {
+			clr = theme.ColorYellow
+		} else {
+			clr = theme.ColorRed
+		}
+	case "OutsideMonitor":
+		if msg.Property() == "temperature" {
+			clr = theme.ColorGreen
+		} else {
+			clr = theme.ColorYellow
+		}
+	case "MediaRoom":
+		if msg.Property() == "temperature" {
+			clr = theme.ColorBlue
+		} else {
+			clr = theme.ColorGreen
+		}
+	case "HomeOffice":
+		if msg.Property() == "temperature" {
+			clr = theme.ColorPurple
+		} else {
+			clr = theme.ColorBlue
+		}
+	case "OverheadDoor":
+		if msg.Property() == "Position" {
+			clr = theme.ColorNameForeground
+		}
+	default:
+		clr = theme.ColorNameForeground
 	}
 
 	point := sknlinechart.NewLineChartDatapoint(float32(val), string(clr), time.RFC3339)
-	s.chart.ApplyDataPoint(series, point)
+	s.chart.ApplyDataPoint(series, &point)
 }

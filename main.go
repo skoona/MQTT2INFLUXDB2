@@ -57,11 +57,14 @@ func main() {
 	ctx = context.WithValue(ctx, commons.TestModeKey, commons.IsTestMode())   // bool
 	ctxService, cancelService := context.WithCancel(ctx)
 
-	points := map[string][]sknlinechart.LineChartDatapoint{}
-	skn, err := sknlinechart.NewLineChart("Testing", "Inside mqtt 2 influx", &points)
+	points := map[string][]*sknlinechart.LineChartDatapoint{}
+	skn, err := sknlinechart.NewLineChart("Skoona Hoe Automation Network", "Inside mqtt 2 influx", &points)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	skn.SetMiddleLeftLabel("Temperature")
+	skn.SetMiddleRightLabel("Humidity")
+	skn.SetBottomLeftLabel("sknSensors MQTT Network")
 
 	onLine := true
 	enbledDataStore := true

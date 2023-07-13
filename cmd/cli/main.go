@@ -49,7 +49,7 @@ func main() {
 	ctxService, cancelService := context.WithCancel(ctx)
 
 	enbledDataStore := false
-	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), enbledDataStore)
+	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), enbledDataStore, nil)
 	if err := service.Enable(); err != nil {
 		fmt.Println("ERROR: shutdown requested cause:", err.Error())
 		fmt.Println("Likely a configuration error, use environment vars to set runtime config values")
