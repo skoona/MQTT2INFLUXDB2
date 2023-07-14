@@ -67,7 +67,9 @@ func (s *streamService) Enable() error {
 					_ = svc.consumer.Write(msg)
 				}
 			}
-			s.ChartEnvironmentals(msg)
+			if s.chart != nil {
+				s.ChartEnvironmentals(msg)
+			}
 		}
 	}(s)
 
