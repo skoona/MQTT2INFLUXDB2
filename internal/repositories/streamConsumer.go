@@ -6,8 +6,8 @@ import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
-	"mqttToInfluxDB/internal/commons"
-	"mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
 	"time"
 )
 

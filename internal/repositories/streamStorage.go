@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"fyne.io/fyne/v2/data/binding"
-	"mqttToInfluxDB/internal/commons"
-	"mqttToInfluxDB/internal/entities"
-	"mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/entities"
+	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
 	"strconv"
 )
 

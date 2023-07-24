@@ -23,8 +23,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"mqttToInfluxDB/internal/commons"
-	"mqttToInfluxDB/internal/services"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/services"
 	"os"
 	"os/signal"
 	"syscall"

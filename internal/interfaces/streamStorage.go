@@ -2,7 +2,7 @@ package interfaces
 
 import (
 	"fyne.io/fyne/v2/data/binding"
-	"mqttToInfluxDB/internal/entities"
+	"github.com/skoona/mqttToInfluxDB/internal/entities"
 )
 
 type StreamStorage interface {

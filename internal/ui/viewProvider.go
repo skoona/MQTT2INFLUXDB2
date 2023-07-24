@@ -11,9 +11,9 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"mqttToInfluxDB/internal/commons"
-	"mqttToInfluxDB/internal/entities"
-	"mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/entities"
+	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
 )
 
 type ViewProvider interface {

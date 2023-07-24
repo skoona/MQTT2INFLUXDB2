@@ -26,10 +26,10 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/services"
+	"github.com/skoona/mqttToInfluxDB/internal/ui"
 	"github.com/skoona/sknlinechart"
-	"mqttToInfluxDB/internal/commons"
-	"mqttToInfluxDB/internal/services"
-	"mqttToInfluxDB/internal/ui"
 	"os"
 	"os/signal"
 	"syscall"
@@ -57,7 +57,7 @@ func main() {
 	ctx = context.WithValue(ctx, commons.TestModeKey, commons.IsTestMode())   // bool
 	ctxService, cancelService := context.WithCancel(ctx)
 
-	points := map[string][]*sknlinechart.LineChartDatapoint{}
+	points := map[string][]*sknlinechart.ChartDatapoint{}
 	skn, err := sknlinechart.NewLineChart("Skoona's Home Automation Network", "Inside mqtt 2 influx", &points)
 	if err != nil {
 		fmt.Println(err.Error())

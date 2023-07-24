@@ -2,7 +2,7 @@ package entities
 
 import (
 	"fyne.io/fyne/v2/data/binding"
-	"mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
 )
 
 type (

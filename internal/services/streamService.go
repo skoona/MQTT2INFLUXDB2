@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"fyne.io/fyne/v2/theme"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/repositories"
 	"github.com/skoona/sknlinechart"
-	"mqttToInfluxDB/internal/commons"
-	"mqttToInfluxDB/internal/interfaces"
-	"mqttToInfluxDB/internal/repositories"
 	"strconv"
 	"time"
 )
@@ -20,12 +20,12 @@ type streamService struct {
 	provider        interfaces.StreamProvider
 	consumer        interfaces.StreamConsumer
 	devStore        interfaces.StreamStorage
-	chart           sknlinechart.SknLineChart
+	chart           sknlinechart.LineChart
 }
 
 var _ interfaces.StreamService = (*streamService)(nil)
 
-func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool, linechart sknlinechart.SknLineChart) interfaces.StreamService {
+func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool, linechart sknlinechart.LineChart) interfaces.StreamService {
 	var consumer interfaces.StreamConsumer
 	var devStore interfaces.StreamStorage
 
@@ -158,6 +158,6 @@ func (s *streamService) ChartEnvironmentals(msg interfaces.StreamMessage) {
 		clr = theme.ColorNameForeground
 	}
 
-	point := sknlinechart.NewLineChartDatapoint(float32(val), string(clr), time.RFC3339)
+	point := sknlinechart.NewChartDatapoint(float32(val), string(clr), time.RFC3339)
 	s.chart.ApplyDataPoint(series, &point)
 }

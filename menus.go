@@ -12,8 +12,8 @@ import (
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
 	"image/color"
-	"mqttToInfluxDB/internal/commons"
 	"net/url"
 )
 

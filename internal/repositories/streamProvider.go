@@ -5,9 +5,9 @@ import (
 	"fmt"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/hashicorp/go-uuid"
-	"mqttToInfluxDB/internal/commons"
-	"mqttToInfluxDB/internal/entities"
-	"mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/entities"
+	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
 	"time"
 )
 

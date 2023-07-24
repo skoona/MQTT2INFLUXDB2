@@ -3,7 +3,7 @@ package entities
 import (
 	"encoding/json"
 	"fmt"
-	"mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/commons"
 	"strings"
 	"time"
 )

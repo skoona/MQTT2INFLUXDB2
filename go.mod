@@ -1,4 +1,4 @@
-module mqttToInfluxDB
+module github.com/skoona/mqttToInfluxDB
 
 go 1.20
 
@@ -7,7 +7,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
-	github.com/skoona/sknlinechart v1.3.8
+	github.com/skoona/sknlinechart v1.5.0
 )
 
 require (
@@ -24,6 +24,7 @@ require (
 	github.com/go-text/typesetting v0.0.0-20230405155246-bf9c697c6e16 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/goki/freetype v0.0.0-20220119013949-7a161fd3728c // indirect
+	github.com/google/uuid v1.1.2 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
