@@ -58,7 +58,7 @@ func main() {
 	ctxService, cancelService := context.WithCancel(ctx)
 
 	points := map[string][]*sknlinechart.ChartDatapoint{}
-	skn, err := sknlinechart.NewLineChart("Skoona's Home Automation Network", "Inside mqtt 2 influx", &points)
+	skn, err := sknlinechart.NewLineChart("Skoona's Home Automation Network", "Inside mqtt 2 influx", 10, &points)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
