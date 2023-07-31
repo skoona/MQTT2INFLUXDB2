@@ -67,13 +67,13 @@ func main() {
 	skn.SetBottomLeftLabel("sknSensors MQTT Network")
 
 	onLine := true
-	enbledDataStore := true
-	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), enbledDataStore, skn)
+	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), true, skn)
 	err = service.Enable()
 	if err != nil {
 		// configuration failure
 		onLine = false
 	}
+	defer service.Disable()
 
 	sknMenus(gui, win)
 	SknTrayMenu(gui, win, lgw)

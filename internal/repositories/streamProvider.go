@@ -77,7 +77,7 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 		for {
 			if <-ctx.Done(); true {
 				fmt.Println("provider cancelled\n", ctx.Err())
-				provider.DisableStream()
+				_ = provider.DisableStream()
 				provider.Disconnect()
 				break
 			}

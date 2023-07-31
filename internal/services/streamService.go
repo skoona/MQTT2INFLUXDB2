@@ -86,11 +86,8 @@ func (s *streamService) Enable() error {
 	return nil
 }
 func (s *streamService) Disable() {
-	s.provider.DisableStream()
+	_ = s.provider.DisableStream()
 	close(s.stream)
-	//cancelConsumer() // consumer
-	//cancelDevice()   // devStore
-
 }
 func (s *streamService) GetStreamProvider() interfaces.StreamProvider {
 	return s.provider
