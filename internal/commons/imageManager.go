@@ -6,16 +6,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-func SknSelectResource(alias string) fyne.Resource {
-	return SknImageByName(alias, false).Resource
-}
-func SknSelectThemedResource(alias string) fyne.Resource {
-	return SknImageByName(alias, true).Resource
-}
-
-func SknSelectImage(alias string) *canvas.Image {
-	return SknImageByName(alias, false)
-}
 func SknSelectThemedImage(alias string) *canvas.Image {
 	return SknImageByName(alias, true)
 }

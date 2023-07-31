@@ -82,12 +82,6 @@ func IsInfluxDBEnabled() bool {
 func GetCompanyName() string {
 	return appSettings[CompanyName]
 }
-func GetApplicationName() string {
-	return appSettings[ApplicationName]
-}
-func GetApplicationTitle() string {
-	return appSettings[ApplicationTitle]
-}
 
 func GetInfluxHostUri() string {
 	return appSettings[InfluxHostUri]
