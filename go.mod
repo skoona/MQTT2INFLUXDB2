@@ -7,7 +7,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
-	github.com/skoona/sknlinechart v1.6.1
+	github.com/skoona/sknlinechart v1.6.3
 )
 
 require (

@@ -62,6 +62,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	//skn.EnableDebugLogging(true)
 	skn.SetMiddleLeftLabel("Temperature")
 	skn.SetMiddleRightLabel("Humidity")
 	skn.SetBottomLeftLabel("sknSensors MQTT Network")
