@@ -12,19 +12,19 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
-	"github.com/skoona/mqttToInfluxDB/internal/entities"
-	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/core/domain"
+	"github.com/skoona/mqttToInfluxDB/internal/core/ports"
 )
 
-type ViewProvider interface {
+type ViewHandler interface {
 	UpdateUI() bool
 	MainPage() *fyne.Container
 	ConfigFailedPage(msg string) *fyne.Container
-	NewCard(device *entities.Device) *fyne.Container
+	NewCard(device *domain.Device) *fyne.Container
 	SetStatusLineText(msg string)
 }
 
-type viewProvider struct {
+type viewHandler struct {
 	ctx        context.Context
 	cards      map[string]*fyne.Container
 	mainPage   *fyne.Container
@@ -33,14 +33,14 @@ type viewProvider struct {
 	msgCounter *widget.Label
 	devCounter *widget.Label
 	mainWindow fyne.Window
-	service    interfaces.StreamService
+	service    ports.StreamService
 }
 
-var _ ViewProvider = (*viewProvider)(nil)
+var _ ViewHandler = (*viewHandler)(nil)
 
-func NewViewProvider(ctx context.Context, service interfaces.StreamService) ViewProvider {
+func NewViewHandler(ctx context.Context, service ports.StreamService) ViewHandler {
 	win := ctx.Value(commons.FyneWindowKey).(*fyne.Window)
-	view := &viewProvider{
+	view := &viewHandler{
 		ctx:        ctx,
 		service:    service,
 		mainWindow: *win,
@@ -62,7 +62,7 @@ func NewViewProvider(ctx context.Context, service interfaces.StreamService) View
 	view.UpdateUI()
 	return view
 }
-func (v *viewProvider) NewCard(device *entities.Device) *fyne.Container {
+func (v *viewHandler) NewCard(device *domain.Device) *fyne.Container {
 	device.SetDisplayed(true)
 	border := canvas.NewRectangle(theme.BackgroundColor())
 	border.StrokeColor = theme.InputBorderColor()
@@ -99,7 +99,7 @@ func (v *viewProvider) NewCard(device *entities.Device) *fyne.Container {
 
 	return content
 }
-func (v *viewProvider) UpdateUI() bool {
+func (v *viewHandler) UpdateUI() bool {
 	added := false
 	for _, dev := range v.service.GetDeviceRepo().GetDevices() {
 		if !dev.IsDisplayed() {
@@ -146,7 +146,7 @@ func (v *viewProvider) UpdateUI() bool {
 	}
 	return added
 }
-func (v *viewProvider) MainPage() *fyne.Container {
+func (v *viewHandler) MainPage() *fyne.Container {
 	v.SetStatusLineText("page updated")
 	grid := container.NewGridWithColumns(6)
 	for _, card := range v.cards {
@@ -175,10 +175,10 @@ func (v *viewProvider) MainPage() *fyne.Container {
 
 	return v.mainPage
 }
-func (v *viewProvider) SetStatusLineText(msg string) {
+func (v *viewHandler) SetStatusLineText(msg string) {
 	v.status.SetText(msg)
 }
-func (v *viewProvider) ConfigFailedPage(msg string) *fyne.Container {
+func (v *viewHandler) ConfigFailedPage(msg string) *fyne.Container {
 	title := canvas.NewText("Configuration Failure", theme.PrimaryColor())
 	title.Alignment = fyne.TextAlignCenter
 	title.TextStyle = fyne.TextStyle{Italic: true}

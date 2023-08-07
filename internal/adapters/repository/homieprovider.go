@@ -1,4 +1,4 @@
-package repositories
+package repository
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/hashicorp/go-uuid"
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
-	"github.com/skoona/mqttToInfluxDB/internal/entities"
-	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/core/domain"
+	"github.com/skoona/mqttToInfluxDB/internal/core/ports"
 	"time"
 )
 
@@ -28,18 +28,18 @@ var (
 	}
 )
 
-type repo struct {
+type homieProvider struct {
 	client     MQTT.Client
 	subscribed bool
-	stream     chan interfaces.StreamMessage
+	stream     chan ports.StreamMessage
 }
 
 var (
-	_            interfaces.StreamProvider = (*repo)(nil)
-	mqttProvider *repo
+	_            ports.StreamProvider = (*homieProvider)(nil)
+	mqttProvider *homieProvider
 )
 
-func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage) interfaces.StreamProvider {
+func NewStreamProvider(ctx context.Context, stream chan ports.StreamMessage) ports.StreamProvider {
 	for k := range topicsMap {
 		topics = append(topics, k)
 	}
@@ -52,7 +52,7 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 	opts.SetPassword(ctx.Value(commons.MqttPassKey).(string))
 	opts.SetCleanSession(true)
 	opts.SetDefaultPublishHandler(func(client MQTT.Client, msg MQTT.Message) {
-		sm, _ := entities.NewStreamMessage(msg.Topic(), string(msg.Payload()))
+		sm, _ := domain.NewStreamMessage(msg.Topic(), string(msg.Payload()))
 		stream <- sm
 	})
 	opts.OnConnect = func(client MQTT.Client) {
@@ -67,13 +67,13 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 
 	client := MQTT.NewClient(opts)
 
-	mqttProvider = &repo{
+	mqttProvider = &homieProvider{
 		client:     client,
 		subscribed: false,
 		stream:     stream,
 	}
 
-	go func(ctx context.Context, provider interfaces.StreamProvider) {
+	go func(ctx context.Context, provider ports.StreamProvider) {
 		for {
 			if <-ctx.Done(); true {
 				fmt.Println("provider cancelled\n", ctx.Err())
@@ -87,10 +87,10 @@ func NewStreamProvider(ctx context.Context, stream chan interfaces.StreamMessage
 
 	return mqttProvider
 }
-func (r *repo) IsOnline() bool {
+func (r *homieProvider) IsOnline() bool {
 	return r.client.IsConnected()
 }
-func (r *repo) Connect() error {
+func (r *homieProvider) Connect() error {
 	fmt.Println("====> StreamProvider() Connecting")
 	if token := r.client.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
@@ -98,17 +98,17 @@ func (r *repo) Connect() error {
 
 	return nil
 }
-func (r *repo) Disconnect() {
+func (r *homieProvider) Disconnect() {
 	fmt.Println("====> StreamProvider() Disconnecting")
 	r.client.Disconnect(250)
 }
-func (r *repo) EnableStream() error {
+func (r *homieProvider) EnableStream() error {
 	for !r.IsOnline() {
 		time.Sleep(500 * time.Millisecond)
 	}
 	fmt.Println("====> StreamProvider() Subscribing")
 	token := r.client.SubscribeMultiple(topicsMap, func(client MQTT.Client, msg MQTT.Message) {
-		sm, _ := entities.NewStreamMessage(msg.Topic(), string(msg.Payload()))
+		sm, _ := domain.NewStreamMessage(msg.Topic(), string(msg.Payload()))
 		r.stream <- sm
 	})
 	if token.Wait() && token.Error() != nil {
@@ -119,7 +119,7 @@ func (r *repo) EnableStream() error {
 	r.subscribed = true
 	return nil
 }
-func (r *repo) DisableStream() error {
+func (r *homieProvider) DisableStream() error {
 	if !r.subscribed {
 		return nil
 	}

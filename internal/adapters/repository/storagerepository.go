@@ -1,17 +1,17 @@
-package repositories
+package repository
 
 import (
 	"context"
 	"fmt"
 	"fyne.io/fyne/v2/data/binding"
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
-	"github.com/skoona/mqttToInfluxDB/internal/entities"
-	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/core/domain"
+	"github.com/skoona/mqttToInfluxDB/internal/core/ports"
 	"strconv"
 )
 
-type streamStorage struct {
-	devices    map[string]*entities.Device
+type storageRepository struct {
+	devices    map[string]*domain.Device
 	ctx        context.Context
 	msgCount   int
 	bMsgCntStr string
@@ -20,9 +20,9 @@ type streamStorage struct {
 	bDevCount  binding.ExternalString
 }
 
-func NewStreamStorage(ctx context.Context) interfaces.StreamStorage {
-	devices := &streamStorage{
-		devices: map[string]*entities.Device{},
+func NewStorageRepository(ctx context.Context) ports.StorageRepository {
+	devices := &storageRepository{
+		devices: map[string]*domain.Device{},
 		ctx:     ctx,
 	}
 	devices.bMsgCount = binding.BindString(&devices.bMsgCntStr)
@@ -31,19 +31,19 @@ func NewStreamStorage(ctx context.Context) interfaces.StreamStorage {
 	return devices
 }
 
-func (d *streamStorage) NewDevice(msg interfaces.StreamMessage) *entities.Device {
+func (d *storageRepository) NewDevice(msg ports.StreamMessage) *domain.Device {
 	dType := commons.SensorType
 	if msg.IsGarageDoor() {
 		dType = commons.GarageType
 	}
 
-	device := &entities.Device{
+	device := &domain.Device{
 		Name:       msg.Device(),
 		DeviceType: dType,
 		LastUpdate: msg.Timestamp(),
-		Properties: map[string]*entities.Property{},
+		Properties: map[string]*domain.Property{},
 	}
-	device.Properties[msg.Property()] = &entities.Property{
+	device.Properties[msg.Property()] = &domain.Property{
 		Name:  msg.Property(),
 		Value: msg.Value(),
 	}
@@ -51,35 +51,35 @@ func (d *streamStorage) NewDevice(msg interfaces.StreamMessage) *entities.Device
 	prop.Bond = binding.BindString(&prop.Value)
 
 	if msg.IsGarageDoor() {
-		device.Properties[commons.ActualProperty] = &entities.Property{
+		device.Properties[commons.ActualProperty] = &domain.Property{
 			Name:  commons.ActualProperty,
 			Value: fmt.Sprintf("%d", msg.Actual()),
 		}
 		prop = device.Properties[commons.ActualProperty]
 		prop.Bond = binding.BindString(&prop.Value)
 
-		device.Properties[commons.AmbientProperty] = &entities.Property{
+		device.Properties[commons.AmbientProperty] = &domain.Property{
 			Name:  commons.AmbientProperty,
 			Value: fmt.Sprintf("%3.2f", msg.Ambient()),
 		}
 		prop = device.Properties[commons.AmbientProperty]
 		prop.Bond = binding.BindString(&prop.Value)
 
-		device.Properties[commons.PositionProperty] = &entities.Property{
+		device.Properties[commons.PositionProperty] = &domain.Property{
 			Name:  commons.PositionProperty,
 			Value: fmt.Sprintf("%d", msg.Position()),
 		}
 		prop = device.Properties[commons.PositionProperty]
 		prop.Bond = binding.BindString(&prop.Value)
 
-		device.Properties[commons.SignalStrengthProperty] = &entities.Property{
+		device.Properties[commons.SignalStrengthProperty] = &domain.Property{
 			Name:  commons.SignalStrengthProperty,
 			Value: fmt.Sprintf("%3.2f", msg.SignalStrength()),
 		}
 		prop = device.Properties[commons.SignalStrengthProperty]
 		prop.Bond = binding.BindString(&prop.Value)
 
-		device.Properties[commons.StateProperty] = &entities.Property{
+		device.Properties[commons.StateProperty] = &domain.Property{
 			Name:  commons.StateProperty,
 			Value: msg.State(),
 		}
@@ -95,7 +95,7 @@ func (d *streamStorage) NewDevice(msg interfaces.StreamMessage) *entities.Device
 
 	return device
 }
-func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
+func (d *storageRepository) ApplyMessage(msg ports.StreamMessage) {
 	device, ok := d.devices[msg.Device()]
 	d.msgCount += 1
 	d.bMsgCntStr = strconv.Itoa(d.msgCount)
@@ -110,11 +110,11 @@ func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
 		_ = device.Bond.Reload()
 	}
 
-	var prop *entities.Property
+	var prop *domain.Property
 
 	property, ok := device.Properties[msg.Property()]
 	if !ok {
-		device.Properties[msg.Property()] = &entities.Property{
+		device.Properties[msg.Property()] = &domain.Property{
 			Name:  msg.Property(),
 			Value: msg.Value(),
 		}
@@ -131,7 +131,7 @@ func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
 
 		property, ok := device.Properties[commons.ActualProperty]
 		if !ok {
-			device.Properties[commons.ActualProperty] = &entities.Property{
+			device.Properties[commons.ActualProperty] = &domain.Property{
 				Name:  commons.ActualProperty,
 				Value: fmt.Sprintf("%d", msg.Actual()),
 			}
@@ -144,7 +144,7 @@ func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
 
 		property, ok = device.Properties[commons.AmbientProperty]
 		if !ok {
-			device.Properties[commons.AmbientProperty] = &entities.Property{
+			device.Properties[commons.AmbientProperty] = &domain.Property{
 				Name:  commons.AmbientProperty,
 				Value: fmt.Sprintf("%3.2f", msg.Ambient()),
 			}
@@ -157,7 +157,7 @@ func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
 
 		property, ok = device.Properties[commons.PositionProperty]
 		if !ok {
-			device.Properties[commons.PositionProperty] = &entities.Property{
+			device.Properties[commons.PositionProperty] = &domain.Property{
 				Name:  commons.PositionProperty,
 				Value: fmt.Sprintf("%d", msg.Position()),
 			}
@@ -170,7 +170,7 @@ func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
 
 		property, ok = device.Properties[commons.SignalStrengthProperty]
 		if !ok {
-			device.Properties[commons.SignalStrengthProperty] = &entities.Property{
+			device.Properties[commons.SignalStrengthProperty] = &domain.Property{
 				Name:  commons.SignalStrengthProperty,
 				Value: fmt.Sprintf("%3.2f", msg.SignalStrength()),
 			}
@@ -183,7 +183,7 @@ func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
 
 		property, ok = device.Properties[commons.StateProperty]
 		if !ok {
-			device.Properties[commons.StateProperty] = &entities.Property{
+			device.Properties[commons.StateProperty] = &domain.Property{
 				Name:  commons.StateProperty,
 				Value: msg.State(),
 			}
@@ -196,21 +196,21 @@ func (d *streamStorage) ApplyMessage(msg interfaces.StreamMessage) {
 	}
 
 }
-func (d *streamStorage) GetNamedDevice(deviceName string) *entities.Device {
+func (d *storageRepository) GetNamedDevice(deviceName string) *domain.Device {
 	return d.devices[deviceName]
 }
-func (d *streamStorage) GetNamedProperty(deviceName, property string) *entities.Property {
+func (d *storageRepository) GetNamedProperty(deviceName, property string) *domain.Property {
 	return d.devices[deviceName].Properties[property]
 }
-func (d *streamStorage) GetDevices() map[string]*entities.Device {
+func (d *storageRepository) GetDevices() map[string]*domain.Device {
 	return d.devices
 }
-func (d *streamStorage) GetProperties(deviceName string) map[string]*entities.Property {
+func (d *storageRepository) GetProperties(deviceName string) map[string]*domain.Property {
 	return d.devices[deviceName].Properties
 }
-func (d *streamStorage) GetMessageCount() *binding.ExternalString {
+func (d *storageRepository) GetMessageCount() *binding.ExternalString {
 	return &d.bMsgCount
 }
-func (d *streamStorage) GetDeviceCount() *binding.ExternalString {
+func (d *storageRepository) GetDeviceCount() *binding.ExternalString {
 	return &d.bDevCount
 }

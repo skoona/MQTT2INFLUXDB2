@@ -1,7 +1,7 @@
 //go:build gui
 // +build gui
 
-package main
+package ui
 
 import (
 	"fmt"
@@ -132,7 +132,7 @@ func SknTrayMenu(a fyne.App, w fyne.Window, chart fyne.Window) {
 		w.SetCloseIntercept(func() { w.Hide() })
 	}
 }
-func sknMenus(a fyne.App, w fyne.Window) {
+func SknMenus(a fyne.App, w fyne.Window) {
 
 	settingsItem := fyne.NewMenuItem("Settings", func() {
 		w := a.NewWindow("Settings")

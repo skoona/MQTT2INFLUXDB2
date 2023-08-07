@@ -1,4 +1,4 @@
-package repositories
+package repository
 
 import (
 	"context"
@@ -7,26 +7,26 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
-	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
+	"github.com/skoona/mqttToInfluxDB/internal/core/ports"
 	"time"
 )
 
-type consumer struct {
+type influxConsumer struct {
 	client   influxdb2.Client
 	writeAPI api.WriteAPIBlocking
 	ctx      context.Context
 }
 
-var _ interfaces.StreamConsumer = (*consumer)(nil)
+var _ ports.StreamConsumer = (*influxConsumer)(nil)
 
-func NewStreamConsumer(ctx context.Context) interfaces.StreamConsumer {
+func NewStreamConsumer(ctx context.Context) ports.StreamConsumer {
 
 	bucket := ctx.Value(commons.InfluxBucketKey).(string)
 	org := ctx.Value(commons.InfluxOrgKey).(string)
 	token := ctx.Value(commons.InfluxTokenKey).(string)
 	url := ctx.Value(commons.InfluxHostUriKey).(string)
 
-	repo := &consumer{ctx: ctx}
+	repo := &influxConsumer{ctx: ctx}
 
 	repo.client = influxdb2.NewClientWithOptions(url, token,
 		influxdb2.DefaultOptions().
@@ -37,10 +37,10 @@ func NewStreamConsumer(ctx context.Context) interfaces.StreamConsumer {
 
 	repo.writeAPI = repo.client.WriteAPIBlocking(org, bucket)
 
-	go func(ctx context.Context, consume interfaces.StreamConsumer) {
+	go func(ctx context.Context, consume ports.StreamConsumer) {
 		for {
 			if <-ctx.Done(); true {
-				fmt.Println("consumer cancelled\n", ctx.Err())
+				fmt.Println("influxConsumer cancelled\n", ctx.Err())
 				consume.Disconnect()
 				break
 			}
@@ -51,7 +51,7 @@ func NewStreamConsumer(ctx context.Context) interfaces.StreamConsumer {
 	return repo
 }
 
-func (c *consumer) Write(msg interfaces.StreamMessage) error {
+func (c *influxConsumer) Write(msg ports.StreamMessage) error {
 	if msg.IsGarageDoor() {
 		dataPoint := influxdb2.NewPoint("home",
 			map[string]string{
@@ -87,7 +87,7 @@ func (c *consumer) Write(msg interfaces.StreamMessage) error {
 	}
 	return nil
 }
-func (c *consumer) Disconnect() {
+func (c *influxConsumer) Disconnect() {
 	fmt.Println("====> StreamConsumer() disconnected")
 	_ = c.writeAPI.Flush(c.ctx)
 	c.client.Close()

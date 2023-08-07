@@ -1,4 +1,4 @@
-package interfaces
+package ports
 
 type StreamMessage interface {
 	IsGarageDoor() bool

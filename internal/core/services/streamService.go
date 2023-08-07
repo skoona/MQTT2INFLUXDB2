@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"fyne.io/fyne/v2/theme"
+	"github.com/skoona/mqttToInfluxDB/internal/adapters/repository"
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
-	"github.com/skoona/mqttToInfluxDB/internal/interfaces"
-	"github.com/skoona/mqttToInfluxDB/internal/repositories"
+	"github.com/skoona/mqttToInfluxDB/internal/core/ports"
 	"github.com/skoona/sknlinechart"
 	"strconv"
 	"time"
@@ -16,27 +16,27 @@ type streamService struct {
 	ctx             context.Context
 	enableDataStore bool
 	enableInflux    bool
-	stream          chan interfaces.StreamMessage
-	provider        interfaces.StreamProvider
-	consumer        interfaces.StreamConsumer
-	devStore        interfaces.StreamStorage
+	stream          chan ports.StreamMessage
+	provider        ports.StreamProvider
+	consumer        ports.StreamConsumer
+	devStore        ports.StorageRepository
 	chart           sknlinechart.LineChart
 }
 
-var _ interfaces.StreamService = (*streamService)(nil)
+var _ ports.StreamService = (*streamService)(nil)
 
-func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool, linechart sknlinechart.LineChart) interfaces.StreamService {
-	var consumer interfaces.StreamConsumer
-	var devStore interfaces.StreamStorage
+func NewStreamService(ctx context.Context, enableInflux bool, enabledDataStore bool, linechart sknlinechart.LineChart) ports.StreamService {
+	var consumer ports.StreamConsumer
+	var devStore ports.StorageRepository
 
-	stream := make(chan interfaces.StreamMessage, 64)
+	stream := make(chan ports.StreamMessage, 64)
 	if enabledDataStore {
-		devStore = repositories.NewStreamStorage(ctx)
+		devStore = repository.NewStorageRepository(ctx)
 	}
 	if enableInflux {
-		consumer = repositories.NewStreamConsumer(ctx)
+		consumer = repository.NewStreamConsumer(ctx)
 	}
-	provider := repositories.NewStreamProvider(ctx, stream)
+	provider := repository.NewStreamProvider(ctx, stream)
 
 	return &streamService{
 		ctx:             ctx,
@@ -89,17 +89,17 @@ func (s *streamService) Disable() {
 	_ = s.provider.DisableStream()
 	close(s.stream)
 }
-func (s *streamService) GetStreamProvider() interfaces.StreamProvider {
+func (s *streamService) GetStreamProvider() ports.StreamProvider {
 	return s.provider
 }
-func (s *streamService) GetStreamConsumer() interfaces.StreamConsumer {
+func (s *streamService) GetStreamConsumer() ports.StreamConsumer {
 	return s.consumer
 }
-func (s *streamService) GetDeviceRepo() interfaces.StreamStorage {
+func (s *streamService) GetDeviceRepo() ports.StorageRepository {
 	return s.devStore
 }
 
-func (s *streamService) ChartEnvironmentals(msg interfaces.StreamMessage) {
+func (s *streamService) ChartEnvironmentals(msg ports.StreamMessage) {
 	if msg.Property() != "temperature" && msg.Property() != "humidity" && msg.Property() != "Position" {
 		return
 	}

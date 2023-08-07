@@ -1,4 +1,4 @@
-package entities
+package domain
 
 import (
 	"fyne.io/fyne/v2/data/binding"

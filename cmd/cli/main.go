@@ -24,7 +24,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
-	"github.com/skoona/mqttToInfluxDB/internal/services"
+	"github.com/skoona/mqttToInfluxDB/internal/core/services"
 	"os"
 	"os/signal"
 	"syscall"

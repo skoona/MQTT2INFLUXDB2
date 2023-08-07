@@ -26,9 +26,9 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"github.com/skoona/mqttToInfluxDB/internal/adapters/handler/ui"
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
-	"github.com/skoona/mqttToInfluxDB/internal/services"
-	"github.com/skoona/mqttToInfluxDB/internal/ui"
+	"github.com/skoona/mqttToInfluxDB/internal/core/services"
 	"github.com/skoona/sknlinechart"
 	"os"
 	"os/signal"
@@ -76,11 +76,11 @@ func main() {
 	}
 	defer service.Disable()
 
-	sknMenus(gui, win)
-	SknTrayMenu(gui, win, lgw)
+	ui.SknMenus(gui, win)
+	ui.SknTrayMenu(gui, win, lgw)
 	win.Resize(fyne.NewSize(1024, 756))
 
-	viewProvider := ui.NewViewProvider(ctxService, service)
+	viewProvider := ui.NewViewHandler(ctxService, service)
 	if onLine {
 		time.Sleep(3 * time.Second)
 		win.SetContent(viewProvider.MainPage())
