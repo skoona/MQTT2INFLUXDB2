@@ -15,11 +15,11 @@ func SknImageByName(alias string, themed bool) *canvas.Image {
 
 	switch alias {
 	case "garageOpen":
-		selected = resourceGarageOpenSvg
+		selected = ResourceGarageOpenSvg
 	case "garageClosed":
-		selected = resourceGarageClosedSvg
+		selected = ResourceGarageClosedSvg
 	default:
-		selected = resourceSensorsOnMbo24pxSvg
+		selected = ResourceSensorsOnMbo24pxSvg
 	}
 	image := canvas.NewImageFromResource(selected)
 	if themed {

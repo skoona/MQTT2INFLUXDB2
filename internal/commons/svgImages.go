@@ -5,17 +5,17 @@ package commons
 
 import "fyne.io/fyne/v2"
 
-var resourceGarageClosedSvg = &fyne.StaticResource{
+var ResourceGarageClosedSvg = &fyne.StaticResource{
 	StaticName: "garage-closed.svg",
 	StaticContent: []byte(
 		"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->\n<svg width=\"800px\" height=\"800px\" viewBox=\"0 0 76.01 76.01\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\" baseProfile=\"full\" enable-background=\"new 0 0 76.01 76.01\" xml:space=\"preserve\">\n\t<path fill=\"#000000\" fill-opacity=\"1\" stroke-width=\"0.2\" stroke-linejoin=\"round\" d=\"M 24.0033,56.0078L 24.0033,38.0053L 21.753,39.7556L 18.5026,34.8799L 38.0053,20.2528L 57.508,34.8799L 54.2576,39.7556L 52.0072,38.0053L 52.0072,56.0078L 49.0068,56.0078L 49.0068,38.0053L 27.0038,38.0053L 27.0038,56.0078L 24.0033,56.0078 Z M 47.0065,44.0061L 29.004,44.0061L 29.004,40.0056L 47.0065,40.0056L 47.0065,44.0061 Z M 47.0065,50.007L 29.004,50.007L 29.004,46.0064L 47.0065,46.0064L 47.0065,50.007 Z M 47.0065,56.0078L 29.004,56.0078L 29.004,52.0073L 47.0065,52.0073L 47.0065,56.0078 Z \"/>\n</svg>"),
 }
-var resourceGarageOpenSvg = &fyne.StaticResource{
+var ResourceGarageOpenSvg = &fyne.StaticResource{
 	StaticName: "garage-open.svg",
 	StaticContent: []byte(
 		"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->\n<svg width=\"800px\" height=\"800px\" viewBox=\"0 0 76.01 76.01\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\" baseProfile=\"full\" enable-background=\"new 0 0 76.01 76.01\" xml:space=\"preserve\">\n\t<path fill=\"#000000\" fill-opacity=\"1\" stroke-width=\"0.2\" stroke-linejoin=\"round\" d=\"M 24.0033,56.0078L 24.0033,38.0053L 21.753,39.7556L 18.5026,34.8799L 38.0053,20.2528L 57.508,34.8799L 54.2576,39.7556L 52.0072,38.0053L 52.0072,56.0078L 49.0068,56.0078L 49.0068,38.0053L 27.0038,38.0053L 27.0038,56.0078L 24.0033,56.0078 Z \"/>\n</svg>"),
 }
-var resourceSensorsOnMbo24pxSvg = &fyne.StaticResource{
+var ResourceSensorsOnMbo24pxSvg = &fyne.StaticResource{
 	StaticName: "sensorsOn-mbo-24px.svg",
 	StaticContent: []byte(
 		"<svg xmlns=\"http://www.w3.org/2000/svg\" enable-background=\"new 0 0 24 24\" height=\"24\" viewBox=\"0 0 24 24\" width=\"24\"><rect fill=\"none\" height=\"24\" width=\"24\"/><path d=\"M7.76,16.24C6.67,15.16,6,13.66,6,12s0.67-3.16,1.76-4.24l1.42,1.42C8.45,9.9,8,10.9,8,12c0,1.1,0.45,2.1,1.17,2.83 L7.76,16.24z M16.24,16.24C17.33,15.16,18,13.66,18,12s-0.67-3.16-1.76-4.24l-1.42,1.42C15.55,9.9,16,10.9,16,12 c0,1.1-0.45,2.1-1.17,2.83L16.24,16.24z M12,10c-1.1,0-2,0.9-2,2s0.9,2,2,2s2-0.9,2-2S13.1,10,12,10z M20,12 c0,2.21-0.9,4.21-2.35,5.65l1.42,1.42C20.88,17.26,22,14.76,22,12s-1.12-5.26-2.93-7.07l-1.42,1.42C19.1,7.79,20,9.79,20,12z M6.35,6.35L4.93,4.93C3.12,6.74,2,9.24,2,12s1.12,5.26,2.93,7.07l1.42-1.42C4.9,16.21,4,14.21,4,12S4.9,7.79,6.35,6.35z\"/></svg>"),

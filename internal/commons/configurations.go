@@ -66,8 +66,8 @@ var (
 			return i.(*map[string]string)
 		}
 */
-func GetConfigurationMap() map[string]string {
-	return appSettings
+func GetConfigurationMap() *map[string]string {
+	return &appSettings
 }
 
 func IsDebugMode() bool {
@@ -78,9 +78,6 @@ func IsTestMode() bool {
 }
 func IsInfluxDBEnabled() bool {
 	return appSettings[EnableInfluxDB] == "true"
-}
-func GetCompanyName() string {
-	return appSettings[CompanyName]
 }
 
 func GetInfluxHostUri() string {

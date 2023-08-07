@@ -68,9 +68,12 @@ func (v *viewHandler) NewCard(device *domain.Device) *fyne.Container {
 	border.StrokeColor = theme.InputBorderColor()
 	border.StrokeWidth = 4
 	props := container.New(layout.NewFormLayout())
+	//props := container.New(layout.NewGridWrapLayout(fyne.NewSize(50, 16)))  promising
 	for name, prop := range device.Properties {
 		if name != commons.GarageProperty {
-			props.Add(widget.NewLabel(prop.Name))
+			z := widget.NewLabel(prop.Name)
+			z.Alignment = fyne.TextAlignTrailing
+			props.Add(z)
 			n := widget.NewLabelWithData(prop.Bond)
 			n.Wrapping = fyne.TextWrapWord
 			props.Add(n)
@@ -87,14 +90,16 @@ func (v *viewHandler) NewCard(device *domain.Device) *fyne.Container {
 	if device.IsGarageType() {
 		if device.IsGarageOpen() {
 			card.SetImage(commons.SknSelectThemedImage("garageOpen"))
+			//card.SetImage(canvas.NewImageFromResource(commons.ResourceGarageOpenSvg))
 		} else {
 			card.SetImage(commons.SknSelectThemedImage("garageClosed"))
+			//card.SetImage(canvas.NewImageFromResource(commons.ResourceSensorsOnMbo24pxSvg))
 		}
 	} else {
 		card.SetImage(commons.SknSelectThemedImage("sensorOn_o"))
 	}
+	card.Resize(fyne.NewSize(100, 100))
 	content := container.NewMax(border, card)
-	content.Resize(fyne.NewSize(240, 240))
 	v.cards[device.Name] = content
 
 	return content

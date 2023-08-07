@@ -38,11 +38,11 @@ import (
 
 func main() {
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, commons.SknAppIDKey, "net.skoona.mq2influx")
+	ctx = context.WithValue(ctx, commons.SknAppIDKey, "net.skoona.projects.mq2influx")
 
-	gui := app.NewWithID("net.skoona.mq2influx")
+	gui := app.NewWithID("net.skoona.projects.mq2influx")
 	win := gui.NewWindow("MQTT to InfluxDB2")
-	lgw := gui.NewWindow("Line Graph")
+	lgw := gui.NewWindow("Scott's Residence")
 	_ = commons.AppSettings(ctx)
 
 	ctx = context.WithValue(ctx, commons.InfluxHostUriKey, commons.GetInfluxHostUri()) // strings
@@ -57,15 +57,17 @@ func main() {
 	ctx = context.WithValue(ctx, commons.TestModeKey, commons.IsTestMode())   // bool
 	ctxService, cancelService := context.WithCancel(ctx)
 
-	points := map[string][]*sknlinechart.ChartDatapoint{}
-	skn, err := sknlinechart.NewLineChart("Skoona's Home Automation Network", "Inside mqtt 2 influx", 10, &points)
+	opts := sknlinechart.NewChartOptions()
+	opts.Add(sknlinechart.WithTitle("Skoona's Home Automation Network"))
+	opts.Add(sknlinechart.WithFooter("Homie v3 Sensors"))
+	opts.Add(sknlinechart.WithLeftScaleLabel("Temperature"))
+	opts.Add(sknlinechart.WithRightScaleLabel("Humidity"))
+	opts.Add(sknlinechart.WithBottomLeftLabel("sknSensors MQTT Network"))
+
+	skn, err := sknlinechart.NewLineChartViaOptions(opts)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	//skn.EnableDebugLogging(true)
-	skn.SetMiddleLeftLabel("Temperature")
-	skn.SetMiddleRightLabel("Humidity")
-	skn.SetBottomLeftLabel("sknSensors MQTT Network")
 
 	onLine := true
 	service := services.NewStreamService(ctxService, commons.IsInfluxDBEnabled(), true, skn)
@@ -78,14 +80,14 @@ func main() {
 
 	ui.SknMenus(gui, win)
 	ui.SknTrayMenu(gui, win, lgw)
-	win.Resize(fyne.NewSize(1024, 756))
+	win.Resize(fyne.NewSize(512, 384))
 
 	viewProvider := ui.NewViewHandler(ctxService, service)
 	if onLine {
 		time.Sleep(3 * time.Second)
 		win.SetContent(viewProvider.MainPage())
 
-		lgw.Resize(fyne.NewSize(982, 452))
+		lgw.Resize(fyne.NewSize(512, 256))
 		lgw.SetContent(container.NewPadded(skn))
 		lgw.CenterOnScreen()
 		lgw.SetCloseIntercept(func() { lgw.Hide() })

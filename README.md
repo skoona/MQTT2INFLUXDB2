@@ -24,7 +24,7 @@ Golang program to read certain MQTT messages for devices (sensors) that use the 
 Can also be configured thru the `settings` menu option.
 
 ### MQTT Subscriptions
-    `.internal/repositories/streamProvider.go` contains this list of scriptions:
+    `.internal/adapters/repository/homieprovider.go` contains this list of scriptions:
 * 	"+/+/+/humidity"
 *  	"+/+/+/temperature"
 *  	"+/+/+/motion"    
@@ -55,48 +55,48 @@ The focus is to collect environmental reading from sensors on the Homie network.
     * StreamProvider  reads MQTT messages
 
 ### File Tree
-    ├── LICENSE
-    ├── Makefile
-    ├── README.md
-    ├── bin
-    │   ├── mq2influx
-    │   └── mq2influx_cli
-    ├── cmd
-    │   ├── cli
-    │   │   └── main.go
-    │   └── gui -- see root
-    ├── go.mod
-    ├── go.sum
-    ├── internal
-    │   ├── commons
-    │   │   ├── configurations.go
-    │   │   ├── imageManager.go
-    │   │   └── svgImages.go
-    │   ├── entities
-    │   │   ├── baseMessage.go
-    │   │   └── devices.go
-    │   ├── interfaces
-    │   │   ├── streamStorage.go
-    │   │   ├── streamConsumer.go
-    │   │   ├── streamMessage.go
-    │   │   ├── streamProvider.go
-    │   │   └── streamService.go
-    │   ├── repositories
-    │   │   ├── streamStorage.go
-    │   │   ├── streamConsumer.go
-    │   │   └── streamProvider.go
-    │   ├── services
-    │   │   └── streamService.go
-    │   └── ui
-    │       └── viewProvider.go
-    ├── main.go
-    ├── menus.go
-    ├── resources
-    │   ├── garage-closed.svg
-    │   ├── garage-open.svg
-    │   └── sensorsOn-mbo-24px.svg
-    └── skoona.png
-
+```text
+├── LICENSE
+├── Makefile
+├── README.md
+├── cmd
+│   └── cli
+│       └── main.go
+├── go.mod
+├── go.sum
+├── internal
+│   ├── adapters
+│   │   ├── handler
+│   │   │   └── ui
+│   │   │       ├── menus.go
+│   │   │       └── viewhandler.go
+│   │   └── repository
+│   │       ├── homieprovider.go
+│   │       ├── influxconsumer.go
+│   │       └── storagerepository.go
+│   ├── commons
+│   │   ├── configurations.go
+│   │   ├── imageManager.go
+│   │   ├── resources
+│   │   │   ├── garage-closed.svg
+│   │   │   ├── garage-open.svg
+│   │   │   └── sensorsOn-mbo-24px.svg
+│   │   └── svgImages.go
+│   └── core
+│       ├── domain
+│       │   ├── baseMessage.go
+│       │   └── devices.go
+│       ├── ports
+│       │   ├── storagerepository.go
+│       │   ├── streamMessage.go
+│       │   ├── streamService.go
+│       │   ├── streamconsumer.go
+│       │   └── streamprovider.go
+│       └── services
+│           └── streamService.go
+├── main.go
+└── skoona.png
+```
 
 
 ## MIT License

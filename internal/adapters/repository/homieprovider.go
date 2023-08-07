@@ -29,9 +29,10 @@ var (
 )
 
 type homieProvider struct {
-	client     MQTT.Client
-	subscribed bool
-	stream     chan ports.StreamMessage
+	client          MQTT.Client
+	subscribed      bool
+	stream          chan ports.StreamMessage
+	connectionLevel int
 }
 
 var (
@@ -56,32 +57,52 @@ func NewStreamProvider(ctx context.Context, stream chan ports.StreamMessage) por
 		stream <- sm
 	})
 	opts.OnConnect = func(client MQTT.Client) {
+		if mqttProvider.connectionLevel == 2 {
+			mqttProvider.connectionLevel = 3
+		}
 		fmt.Println("====> StreamProvider() Connected")
 	}
 	opts.OnReconnecting = func(client MQTT.Client, options *MQTT.ClientOptions) {
+		if mqttProvider.connectionLevel == 1 {
+			mqttProvider.connectionLevel = 2
+		}
 		fmt.Println("====> StreamProvider() Reconnecting")
 	}
 	opts.OnConnectionLost = func(client MQTT.Client, err error) {
+		if mqttProvider.connectionLevel == 0 {
+			mqttProvider.connectionLevel = 1
+		}
 		fmt.Println("====> StreamProvider() Connection lost: ", err.Error())
 	}
+
+	opts.SetAutoReconnect(true)
 
 	client := MQTT.NewClient(opts)
 
 	mqttProvider = &homieProvider{
-		client:     client,
-		subscribed: false,
-		stream:     stream,
+		client:          client,
+		subscribed:      false,
+		stream:          stream,
+		connectionLevel: 0,
 	}
 
-	go func(ctx context.Context, provider ports.StreamProvider) {
+	go func(ctx context.Context, provider *homieProvider) {
+	Gone:
 		for {
-			if <-ctx.Done(); true {
+			select {
+			case <-ctx.Done():
 				fmt.Println("provider cancelled\n", ctx.Err())
 				_ = provider.DisableStream()
 				provider.Disconnect()
-				break
+				break Gone
+
+			default:
+				if provider.subscribed && provider.connectionLevel == 3 {
+					mqttProvider.connectionLevel = 0
+					_ = provider.EnableStream()
+				}
+				time.Sleep(1 * time.Second)
 			}
-			time.Sleep(1 * time.Second)
 		}
 	}(ctx, mqttProvider)
 

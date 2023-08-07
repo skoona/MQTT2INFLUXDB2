@@ -11,13 +11,11 @@ import (
 )
 
 type storageRepository struct {
-	devices    map[string]*domain.Device
-	ctx        context.Context
-	msgCount   int
-	bMsgCntStr string
-	bMsgCount  binding.ExternalString
-	bDevCntStr string
-	bDevCount  binding.ExternalString
+	devices   map[string]*domain.Device
+	ctx       context.Context
+	msgCount  int
+	bMsgCount binding.String
+	bDevCount binding.String
 }
 
 func NewStorageRepository(ctx context.Context) ports.StorageRepository {
@@ -25,8 +23,8 @@ func NewStorageRepository(ctx context.Context) ports.StorageRepository {
 		devices: map[string]*domain.Device{},
 		ctx:     ctx,
 	}
-	devices.bMsgCount = binding.BindString(&devices.bMsgCntStr)
-	devices.bDevCount = binding.BindString(&devices.bDevCntStr)
+	devices.bMsgCount = binding.NewString()
+	devices.bDevCount = binding.NewString()
 
 	return devices
 }
@@ -90,16 +88,14 @@ func (d *storageRepository) NewDevice(msg ports.StreamMessage) *domain.Device {
 
 	d.devices[msg.Device()] = device
 
-	d.bDevCntStr = strconv.Itoa(len(d.devices))
-	_ = d.bDevCount.Set(d.bDevCntStr)
+	_ = d.bDevCount.Set(strconv.Itoa(len(d.devices)))
 
 	return device
 }
 func (d *storageRepository) ApplyMessage(msg ports.StreamMessage) {
 	device, ok := d.devices[msg.Device()]
 	d.msgCount += 1
-	d.bMsgCntStr = strconv.Itoa(d.msgCount)
-	_ = d.bMsgCount.Set(d.bMsgCntStr)
+	_ = d.bMsgCount.Set(strconv.Itoa(d.msgCount))
 
 	if !ok {
 		_ = d.NewDevice(msg)
@@ -196,21 +192,12 @@ func (d *storageRepository) ApplyMessage(msg ports.StreamMessage) {
 	}
 
 }
-func (d *storageRepository) GetNamedDevice(deviceName string) *domain.Device {
-	return d.devices[deviceName]
-}
-func (d *storageRepository) GetNamedProperty(deviceName, property string) *domain.Property {
-	return d.devices[deviceName].Properties[property]
-}
 func (d *storageRepository) GetDevices() map[string]*domain.Device {
 	return d.devices
 }
-func (d *storageRepository) GetProperties(deviceName string) map[string]*domain.Property {
-	return d.devices[deviceName].Properties
-}
-func (d *storageRepository) GetMessageCount() *binding.ExternalString {
+func (d *storageRepository) GetMessageCount() *binding.String {
 	return &d.bMsgCount
 }
-func (d *storageRepository) GetDeviceCount() *binding.ExternalString {
+func (d *storageRepository) GetDeviceCount() *binding.String {
 	return &d.bDevCount
 }

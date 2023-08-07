@@ -99,7 +99,7 @@ func PreferencesPage() *fyne.Container {
 		commons.SetMqttUser(mqttUser.Text)
 		commons.SetMqttPass(mqttPass.Text)
 		if fyne.CurrentApp() != nil {
-			for key, value := range commons.GetConfigurationMap() {
+			for key, value := range *commons.GetConfigurationMap() {
 				fyne.CurrentApp().Preferences().SetString(key, value)
 			}
 		}
@@ -115,7 +115,6 @@ func shortcutFocused(s fyne.Shortcut, w fyne.Window) {
 		focused.TypedShortcut(s)
 	}
 }
-
 func SknTrayMenu(a fyne.App, w fyne.Window, chart fyne.Window) {
 	// Add SystemBar Menu
 	if desk, ok := a.(desktop.App); ok {

@@ -8,11 +8,7 @@ import (
 type StorageRepository interface {
 	ApplyMessage(msg StreamMessage)
 	NewDevice(msg StreamMessage) *domain.Device
-
-	GetNamedDevice(deviceName string) *domain.Device
-	GetNamedProperty(deviceName, property string) *domain.Property
 	GetDevices() map[string]*domain.Device
-	GetProperties(deviceName string) map[string]*domain.Property
-	GetMessageCount() *binding.ExternalString
-	GetDeviceCount() *binding.ExternalString
+	GetMessageCount() *binding.String
+	GetDeviceCount() *binding.String
 }
