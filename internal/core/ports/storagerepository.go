@@ -9,6 +9,6 @@ type StorageRepository interface {
 	ApplyMessage(msg StreamMessage)
 	NewDevice(msg StreamMessage) *domain.Device
 	GetDevices() map[string]*domain.Device
-	GetMessageCount() *binding.String
-	GetDeviceCount() *binding.String
+	GetMessageCountBinding() *binding.String
+	GetDeviceCountBinding() *binding.String
 }

@@ -195,9 +195,9 @@ func (d *storageRepository) ApplyMessage(msg ports.StreamMessage) {
 func (d *storageRepository) GetDevices() map[string]*domain.Device {
 	return d.devices
 }
-func (d *storageRepository) GetMessageCount() *binding.String {
+func (d *storageRepository) GetMessageCountBinding() *binding.String {
 	return &d.bMsgCount
 }
-func (d *storageRepository) GetDeviceCount() *binding.String {
+func (d *storageRepository) GetDeviceCountBinding() *binding.String {
 	return &d.bDevCount
 }

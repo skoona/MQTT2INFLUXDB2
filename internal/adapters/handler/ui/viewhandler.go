@@ -36,7 +36,7 @@ type viewHandler struct {
 	devCounter   *widget.Label
 	mainWindow   fyne.Window
 	service      ports.StreamService
-	updateLock   sync.RWMutex
+	updateUiLock sync.RWMutex
 }
 
 var _ ViewHandler = (*viewHandler)(nil)
@@ -50,7 +50,7 @@ func NewViewHandler(ctx context.Context, service ports.StreamService) ViewHandle
 		cards:        map[string]*fyne.Container{},
 		status:       widget.NewLabel("place holder"),
 		mainPageGrid: container.NewGridWithColumns(4),
-		updateLock:   sync.RWMutex{},
+		updateUiLock: sync.RWMutex{},
 	}
 
 	view.msgCounter = widget.NewLabelWithData(*view.service.GetMessageCount())
@@ -116,8 +116,8 @@ func (v *viewHandler) NewCard(device *domain.Device) *fyne.Container {
 	return content
 }
 func (v *viewHandler) UpdateUI() bool {
-	v.updateLock.Lock()
-	defer v.updateLock.Unlock()
+	v.updateUiLock.Lock()
+	defer v.updateUiLock.Unlock()
 
 	added := false
 	for _, dev := range v.service.GetDeviceList() {
@@ -128,37 +128,40 @@ func (v *viewHandler) UpdateUI() bool {
 		} else {
 			// only update properties not on screen
 			card, ok := v.cards[dev.Name]
-			if ok && dev.IsGarageType() {
-				if dev.IsGarageOpen() {
-					card.Objects[1].(*widget.Card).SetImage(commons.SknSelectThemedImage("garageOpen"))
-				} else {
-					card.Objects[1].(*widget.Card).SetImage(commons.SknSelectThemedImage("garageClosed"))
-				}
-			}
+			if ok {
+				if dev.IsGarageType() {
+					if dev.IsGarageOpen() {
+						card.Objects[1].(*widget.Card).SetImage(commons.SknSelectThemedImage("garageOpen"))
+					} else {
+						card.Objects[1].(*widget.Card).SetImage(commons.SknSelectThemedImage("garageClosed"))
+					}
 
-			for name, prop := range dev.Properties {
-				if name != commons.GarageProperty {
-					skip := false
-					// find in card then skip
-					for _, wid := range card.Objects[1].(*widget.Card).Content.(*fyne.Container).Objects {
-						item := wid.(*widget.Label)
-						if item.Text == name {
-							skip = true
-							break
+				} else {
+					for name, prop := range dev.Properties {
+						if name != commons.GarageProperty {
+							skip := false
+							// find in card then skip
+							for _, wid := range card.Objects[1].(*widget.Card).Content.(*fyne.Container).Objects {
+								item := wid.(*widget.Label)
+								if item.Text == name {
+									skip = true
+									break
+								}
+							}
+							if !skip {
+								n := widget.NewLabel(prop.Name)
+								d := widget.NewLabelWithData(prop.Bond)
+								d.Wrapping = fyne.TextWrapWord
+
+								card.Objects[1].(*widget.Card).Content.(*fyne.Container).Add(n)
+								card.Objects[1].(*widget.Card).Content.(*fyne.Container).Add(d)
+								added = true
+								v.SetStatusLineText("added new Property: " + dev.Name + "::" + prop.Name)
+							}
 						}
 					}
-					if !skip {
-						n := widget.NewLabel(prop.Name)
-						d := widget.NewLabelWithData(prop.Bond)
-						d.Wrapping = fyne.TextWrapWord
-
-						card.Objects[1].(*widget.Card).Content.(*fyne.Container).Add(n)
-						card.Objects[1].(*widget.Card).Content.(*fyne.Container).Add(d)
-						added = true
-						v.SetStatusLineText("added new Property: " + dev.Name + "::" + prop.Name)
-					}
 				}
-			}
+			} // device didn't exist
 		}
 	}
 
@@ -172,10 +175,10 @@ func (v *viewHandler) MainPage() *fyne.Container {
 	}
 	m := widget.NewIcon(theme.FolderOpenIcon())
 	i := widget.NewIcon(theme.StorageIcon())
-	if v.service.IsStreamProviderEnabled() {
+	if !v.service.IsStreamProviderEnabled() {
 		m.Hide()
 	}
-	if v.service.IsStreamConsumerEnabled() {
+	if !v.service.IsStreamConsumerEnabled() {
 		i.Hide()
 	}
 

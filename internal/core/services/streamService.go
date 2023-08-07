@@ -101,10 +101,10 @@ func (s *streamService) GetDeviceList() map[string]*domain.Device {
 	return s.devStore.GetDevices()
 }
 func (s *streamService) GetMessageCount() *binding.String {
-	return s.devStore.GetMessageCount()
+	return s.devStore.GetMessageCountBinding()
 }
 func (s *streamService) GetDeviceCount() *binding.String {
-	return s.devStore.GetDeviceCount()
+	return s.devStore.GetDeviceCountBinding()
 }
 func (s *streamService) ChartEnvironmentals(msg ports.StreamMessage) {
 	if msg.Property() != "temperature" && msg.Property() != "humidity" && msg.Property() != "Position" {
