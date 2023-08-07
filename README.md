@@ -41,7 +41,6 @@ The focus is to collect environmental reading from sensors on the Homie network.
 
 ## Development Notes
     Use build tags to generate gui or cli versions; --tags [gui|cli]
-	fyne data binding process require an address of an alternate object to be used for successful dynamic updates, and when source changes the object must be set.
 	Environment variables override the defaults and/or saved config in all cases.
 	InfluxDB2 channel can be turned off via settings or environment var
     Two icons on status bar relate to (folder)message provider and (storage) message consumer being enabled
@@ -49,12 +48,13 @@ The focus is to collect environmental reading from sensors on the Homie network.
     Using the CLI version with InfluxDB turned off, doesn't make much sense but can be done.
     There are five main components driving the whole app.
     * ViewProvider    Fyne GUI page manager
-    * StreamService   Provide structure and control for UIs 
+    * StreamService   Provide structure and control data flow usecase
     * StreamStorage   transforms MQTT messages into Entities
     * StreamConsumer  sends MQTT Messages to InfluxDB2
     * StreamProvider  reads MQTT messages
 
 ### File Tree
+Modeled after [Hexagonal Architecture Pattern](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software))
 ```text
 ├── LICENSE
 ├── Makefile
