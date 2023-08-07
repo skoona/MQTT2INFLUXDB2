@@ -87,7 +87,7 @@ func main() {
 		time.Sleep(3 * time.Second)
 		win.SetContent(viewProvider.MainPage())
 
-		lgw.Resize(fyne.NewSize(512, 256))
+		lgw.Resize(fyne.NewSize(800, 384))
 		lgw.SetContent(container.NewPadded(skn))
 		lgw.CenterOnScreen()
 		lgw.SetCloseIntercept(func() { lgw.Hide() })

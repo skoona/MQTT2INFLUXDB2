@@ -153,7 +153,7 @@ func (v *viewHandler) UpdateUI() bool {
 }
 func (v *viewHandler) MainPage() *fyne.Container {
 	v.SetStatusLineText("page updated")
-	grid := container.NewGridWithColumns(6)
+	grid := container.NewGridWithColumns(4)
 	for _, card := range v.cards {
 		grid.Add(card)
 	}
@@ -165,6 +165,9 @@ func (v *viewHandler) MainPage() *fyne.Container {
 	if v.service.GetStreamConsumer() == nil {
 		i.Hide()
 	}
+
+	scrolledGrid := container.NewVScroll(grid)
+
 	v.mainPage = container.NewBorder(
 		nil,
 		container.NewHBox(v.refresh,
@@ -176,7 +179,7 @@ func (v *viewHandler) MainPage() *fyne.Container {
 		),
 		nil,
 		nil,
-		grid)
+		scrolledGrid)
 
 	return v.mainPage
 }
