@@ -88,7 +88,7 @@ func PreferencesPage() *fyne.Container {
 			{Text: "Debug Mode Enabled", Widget: debugEnable},
 			{Text: "Test Mode Enabled", Widget: testEnable},
 		},
-		SubmitText: "Apply",
+		SubmitText: "ApplyMessage",
 	}
 	form.OnSubmit = func() { // optional, handle form submission
 		commons.SetInfluxHostUri(influxUrl.Text)

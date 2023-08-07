@@ -50,7 +50,7 @@ func NewStreamConsumer(ctx context.Context) ports.StreamConsumer {
 
 	return repo
 }
-func (c *influxConsumer) Write(msg ports.StreamMessage) error {
+func (c *influxConsumer) ApplyMessage(msg ports.StreamMessage) error {
 	if msg.IsGarageDoor() {
 		dataPoint := influxdb2.NewPoint("home",
 			map[string]string{

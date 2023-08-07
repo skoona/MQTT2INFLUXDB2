@@ -3,9 +3,11 @@ package services
 import (
 	"context"
 	"fmt"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/theme"
 	"github.com/skoona/mqttToInfluxDB/internal/adapters/repository"
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
+	"github.com/skoona/mqttToInfluxDB/internal/core/domain"
 	"github.com/skoona/mqttToInfluxDB/internal/core/ports"
 	"github.com/skoona/sknlinechart"
 	"strconv"
@@ -64,7 +66,7 @@ func (s *streamService) Enable() error {
 			}
 			if s.enableInflux {
 				if msg.Property() != "heartbeat" {
-					_ = svc.consumer.Write(msg)
+					_ = svc.consumer.ApplyMessage(msg)
 				}
 			}
 			if s.chart != nil {
@@ -89,16 +91,21 @@ func (s *streamService) Disable() {
 	_ = s.provider.DisableStream()
 	close(s.stream)
 }
-func (s *streamService) GetStreamProvider() ports.StreamProvider {
-	return s.provider
+func (s *streamService) IsStreamProviderEnabled() bool {
+	return s.provider != nil
 }
-func (s *streamService) GetStreamConsumer() ports.StreamConsumer {
-	return s.consumer
+func (s *streamService) IsStreamConsumerEnabled() bool {
+	return s.consumer != nil
 }
-func (s *streamService) GetDeviceRepo() ports.StorageRepository {
-	return s.devStore
+func (s *streamService) GetDeviceList() map[string]*domain.Device {
+	return s.devStore.GetDevices()
 }
-
+func (s *streamService) GetMessageCount() *binding.String {
+	return s.devStore.GetMessageCount()
+}
+func (s *streamService) GetDeviceCount() *binding.String {
+	return s.devStore.GetDeviceCount()
+}
 func (s *streamService) ChartEnvironmentals(msg ports.StreamMessage) {
 	if msg.Property() != "temperature" && msg.Property() != "humidity" && msg.Property() != "Position" {
 		return

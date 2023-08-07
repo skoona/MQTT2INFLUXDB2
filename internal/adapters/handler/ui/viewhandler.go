@@ -14,6 +14,7 @@ import (
 	"github.com/skoona/mqttToInfluxDB/internal/commons"
 	"github.com/skoona/mqttToInfluxDB/internal/core/domain"
 	"github.com/skoona/mqttToInfluxDB/internal/core/ports"
+	"sync"
 )
 
 type ViewHandler interface {
@@ -25,15 +26,17 @@ type ViewHandler interface {
 }
 
 type viewHandler struct {
-	ctx        context.Context
-	cards      map[string]*fyne.Container
-	mainPage   *fyne.Container
-	status     *widget.Label
-	refresh    *widget.Button
-	msgCounter *widget.Label
-	devCounter *widget.Label
-	mainWindow fyne.Window
-	service    ports.StreamService
+	ctx          context.Context
+	cards        map[string]*fyne.Container
+	mainPageGrid *fyne.Container
+	mainPage     *fyne.Container
+	status       *widget.Label
+	refresh      *widget.Button
+	msgCounter   *widget.Label
+	devCounter   *widget.Label
+	mainWindow   fyne.Window
+	service      ports.StreamService
+	updateLock   sync.RWMutex
 }
 
 var _ ViewHandler = (*viewHandler)(nil)
@@ -41,25 +44,35 @@ var _ ViewHandler = (*viewHandler)(nil)
 func NewViewHandler(ctx context.Context, service ports.StreamService) ViewHandler {
 	win := ctx.Value(commons.FyneWindowKey).(*fyne.Window)
 	view := &viewHandler{
-		ctx:        ctx,
-		service:    service,
-		mainWindow: *win,
-		cards:      map[string]*fyne.Container{},
-		status:     widget.NewLabel("place holder"),
+		ctx:          ctx,
+		service:      service,
+		mainWindow:   *win,
+		cards:        map[string]*fyne.Container{},
+		status:       widget.NewLabel("place holder"),
+		mainPageGrid: container.NewGridWithColumns(4),
+		updateLock:   sync.RWMutex{},
 	}
 
-	view.msgCounter = widget.NewLabelWithData(*view.service.GetDeviceRepo().GetMessageCount())
-	view.devCounter = widget.NewLabelWithData(*view.service.GetDeviceRepo().GetDeviceCount())
+	view.msgCounter = widget.NewLabelWithData(*view.service.GetMessageCount())
+	view.devCounter = widget.NewLabelWithData(*view.service.GetDeviceCount())
+	(*service.GetMessageCount()).AddListener(binding.NewDataListener(func() {
+		if len(view.cards) > 1 {
+			if view.UpdateUI() {
+				view.mainWindow.Content().Refresh()
+			}
+		}
+	}))
 
 	view.refresh = widget.NewButtonWithIcon("refresh", theme.ViewRefreshIcon(), func() {
 		if view.UpdateUI() {
-			view.mainWindow.SetContent(view.mainPage)
-		} else {
 			view.mainWindow.Content().Refresh()
 		}
 	})
 
-	view.UpdateUI()
+	if view.UpdateUI() {
+		view.mainWindow.Content().Refresh()
+	}
+
 	return view
 }
 func (v *viewHandler) NewCard(device *domain.Device) *fyne.Container {
@@ -68,7 +81,6 @@ func (v *viewHandler) NewCard(device *domain.Device) *fyne.Container {
 	border.StrokeColor = theme.InputBorderColor()
 	border.StrokeWidth = 4
 	props := container.New(layout.NewFormLayout())
-	//props := container.New(layout.NewGridWrapLayout(fyne.NewSize(50, 16)))  promising
 	for name, prop := range device.Properties {
 		if name != commons.GarageProperty {
 			z := widget.NewLabel(prop.Name)
@@ -81,19 +93,16 @@ func (v *viewHandler) NewCard(device *domain.Device) *fyne.Container {
 	}
 	card := widget.NewCard(device.Name, device.UpdatedAt(), props)
 	device.Bond = binding.BindString(&device.LastUpdate)
-	callback := binding.NewDataListener(func() {
+	device.Bond.AddListener(binding.NewDataListener(func() {
 		str, _ := device.Bond.Get()
 		card.SetSubTitle(str)
-	})
-	device.Bond.AddListener(callback)
+	}))
 
 	if device.IsGarageType() {
 		if device.IsGarageOpen() {
 			card.SetImage(commons.SknSelectThemedImage("garageOpen"))
-			//card.SetImage(canvas.NewImageFromResource(commons.ResourceGarageOpenSvg))
 		} else {
 			card.SetImage(commons.SknSelectThemedImage("garageClosed"))
-			//card.SetImage(canvas.NewImageFromResource(commons.ResourceSensorsOnMbo24pxSvg))
 		}
 	} else {
 		card.SetImage(commons.SknSelectThemedImage("sensorOn_o"))
@@ -101,21 +110,25 @@ func (v *viewHandler) NewCard(device *domain.Device) *fyne.Container {
 	card.Resize(fyne.NewSize(100, 100))
 	content := container.NewMax(border, card)
 	v.cards[device.Name] = content
+	v.mainPageGrid.Add(content)
+	v.mainPageGrid.Refresh()
 
 	return content
 }
 func (v *viewHandler) UpdateUI() bool {
+	v.updateLock.Lock()
+	defer v.updateLock.Unlock()
+
 	added := false
-	for _, dev := range v.service.GetDeviceRepo().GetDevices() {
+	for _, dev := range v.service.GetDeviceList() {
 		if !dev.IsDisplayed() {
 			v.NewCard(dev)
-			v.mainWindow.SetContent(v.MainPage())
 			v.SetStatusLineText("added new Device: " + dev.Name)
 			added = true
 		} else {
 			// only update properties not on screen
-			card, _ := v.cards[dev.Name]
-			if dev.IsGarageType() {
+			card, ok := v.cards[dev.Name]
+			if ok && dev.IsGarageType() {
 				if dev.IsGarageOpen() {
 					card.Objects[1].(*widget.Card).SetImage(commons.SknSelectThemedImage("garageOpen"))
 				} else {
@@ -141,32 +154,32 @@ func (v *viewHandler) UpdateUI() bool {
 
 						card.Objects[1].(*widget.Card).Content.(*fyne.Container).Add(n)
 						card.Objects[1].(*widget.Card).Content.(*fyne.Container).Add(d)
+						added = true
+						v.SetStatusLineText("added new Property: " + dev.Name + "::" + prop.Name)
 					}
 				}
 			}
 		}
 	}
-	if added {
-		v.SetStatusLineText("new card added")
-	}
+
 	return added
 }
 func (v *viewHandler) MainPage() *fyne.Container {
-	v.SetStatusLineText("page updated")
-	grid := container.NewGridWithColumns(4)
+	v.SetStatusLineText("main page updated")
+	v.mainPageGrid.RemoveAll()
 	for _, card := range v.cards {
-		grid.Add(card)
+		v.mainPageGrid.Add(card)
 	}
 	m := widget.NewIcon(theme.FolderOpenIcon())
 	i := widget.NewIcon(theme.StorageIcon())
-	if v.service.GetStreamProvider() == nil {
+	if v.service.IsStreamProviderEnabled() {
 		m.Hide()
 	}
-	if v.service.GetStreamConsumer() == nil {
+	if v.service.IsStreamConsumerEnabled() {
 		i.Hide()
 	}
 
-	scrolledGrid := container.NewVScroll(grid)
+	scrolledGrid := container.NewVScroll(v.mainPageGrid)
 
 	v.mainPage = container.NewBorder(
 		nil,
@@ -174,7 +187,7 @@ func (v *viewHandler) MainPage() *fyne.Container {
 			m,
 			i,
 			widget.NewLabel(" Devices:"), v.devCounter,
-			widget.NewLabel(" Msgs processed:"), v.msgCounter,
+			widget.NewLabel(" Messages processed:"), v.msgCounter,
 			v.status,
 		),
 		nil,
@@ -196,11 +209,11 @@ func (v *viewHandler) ConfigFailedPage(msg string) *fyne.Container {
 	eLine.Alignment = fyne.TextAlignCenter
 	eLine.TextSize = 18
 
-	body := canvas.NewText("Set run configuration in menu `settings`", theme.WarningColor())
+	body := canvas.NewText("set run configuration in menu `settings`", theme.WarningColor())
 	body.Alignment = fyne.TextAlignCenter
 	body.TextSize = 18
 
-	dialog.ShowError(fmt.Errorf("Configurating error: %s", fmt.Errorf(msg)), v.mainWindow)
+	dialog.ShowError(fmt.Errorf("configurating error: %s", fmt.Errorf(msg)), v.mainWindow)
 
 	return container.NewMax(
 		container.NewVBox(title),
